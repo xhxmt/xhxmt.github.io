@@ -954,8 +954,14 @@
         <div class="select-group">
           <span class="select-label">选择建模题目 / Dataset</span>
           <select class="select-control" id="problem-select">
-            <option value="cumcm_2024b">CUMCM 2024 Problem B - 定日镜场优化设计</option>
-            <option value="mcm_2024b">MCM 2024 Problem B - 网球赛事势头分析</option>
+            <option value="cumcm_2024a">CUMCM 2024 A题 - “板凳龙”闹元宵</option>
+            <option value="cumcm_2024b">CUMCM 2024 B题 - 生产过程中的决策问题</option>
+            <option value="cumcm_2024c">CUMCM 2024 C题 - 农作物的种植策略</option>
+            <option value="cumcm_2024d">CUMCM 2024 D题 - 反潜航空深弹命中概率问题</option>
+            <option value="cumcm_2025a">CUMCM 2025 A题 - 烟幕干扰弹的投放策略</option>
+            <option value="cumcm_2025b">CUMCM 2025 B题 - 碳化硅外延层厚度的确定</option>
+            <option value="cumcm_2025c">CUMCM 2025 C题 - NIPT 的时点选择与胎儿的异常判定</option>
+            <option value="cumcm_2025d">CUMCM 2025 D题 - 矿井突水水流漫延模型与逃生方案</option>
           </select>
         </div>
         
@@ -1131,936 +1137,743 @@
 
   <!-- Mock Data for Simulation -->
   <script>
-    const CUMCM_TAIL_STEPS = [
-      {
+    function createStepsForProblem(key, meta) {
+      const lang = meta.language;
+      const solverFile = meta.solverFile;
+      const finalPdf = meta.finalPdf;
+      const finalZip = meta.finalZip;
+      
+      const steps = [];
+      
+      // Step 0: Setup / parse
+      steps.push({
+        step: 0,
+        phase: "setup",
+        phaseName: "准备阶段",
+        title: "Step 0: 问题解析与 OCR 提取",
+        agent: "MinerU 解析智能体",
+        description: `利用 MinerU 对 ${meta.shortName} PDF 进行深度解析，提取 ${meta.params} 等核心参数。`,
+        inputs: ["problem.pdf"],
+        outputs: ["problem/problem_parsed.md", `problem/tables_extracted/${key}_specs.csv`],
+        prompt: `读取 ${meta.shortName} 问题 PDF，提取关键的结构化参数，过滤非结构化噪声并导出为 CSV 格式。`,
+        logs: [
+          `[System] 初始化项目目录: ongoing/${key}_run`,
+          `[System] 挂载原始问题 PDF: ${meta.shortName}.pdf`,
+          `[MinerU Agent] 正在调用 MinerU 解析 PDF 文本与公式...`,
+          `[MinerU Agent] 成功捕获核心参数: ${meta.params}。`,
+          `[System] 生成 Markdown 结构化问题: problem/problem_parsed.md`,
+          `[System] 步骤 0 检查完成。文件状态完整。`
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: null
+      });
+
+      // Step 1: Research
+      steps.push({
+        step: 1,
+        phase: "setup",
+        phaseName: "准备阶段",
+        title: "Step 1: 文献背景研究与方法预选",
+        agent: "学术文献研究智能体",
+        description: `针对 ${meta.subject} 调研前人模型与核心解法，拟定解题思路。`,
+        inputs: ["problem/problem_parsed.md"],
+        outputs: ["research/literature_notes.md", "research/selected_methods.json"],
+        prompt: `对 ${meta.subject} 相关的数学物理机制及典型求解算法进行文献检索，形成分析报告。`,
+        logs: [
+          `[Research Agent] 开始检索与 ${meta.subject} 相关的经典数学模型...`,
+          `[Research Agent] 查阅到 3 篇相关期刊文献，确定了基准数学理论基础。`,
+          `[Research Agent] 拟选定方案：1) 解析推导方案；2) 离散数值积分 / ${lang} 优化求解器方案。`,
+          `[System] 写入文献摘要: research/literature_notes.md`,
+          `[System] 写入方法预选: research/selected_methods.json`
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: null
+      });
+
+      // Step 2: Parallel proposals
+      steps.push({
+        step: 2,
+        phase: "modeling",
+        phaseName: "并行建模",
+        title: "Step 2: 并行建模方案提报",
+        agent: "并行建模提报组",
+        description: `提出 Proposal A (快速离散化数值模型) 与 Proposal B (高精度解析/连续条件模型) 进行小规模比对。`,
+        inputs: ["research/selected_methods.json"],
+        outputs: ["models/m1_discrete/proposal.md", "models/m2_continuous/proposal.md"],
+        prompt: `并行设计两个数学模型以解决 ${meta.shortName} 的核心状态，分别基于离散步进和解析连续条件，并给出测试代码。`,
+        logs: [
+          `[System] 派发并行建模任务至: m1_discrete 与 m2_continuous`,
+          `[Agent A] 开始设计基于离散数值近似的 ${meta.shortName} 模型...`,
+          `[Agent B] 开始推导基于连续偏微分/边界代数方程的数学表示...`,
+          `[Agent B] 验证完成。在简化的小测试集上，解析模型在控制误差方面优于离散模型。`,
+          `[System] 写入提报结果至 models/`
+        ],
+        code: meta.code,
+        visual: {
+          type: "image",
+          url: "images/fig-scenario.png",
+          title: `Step 2: ${meta.shortName} 方案的几何空间或网格剖分与初步仿真结果`
+        },
+        paper: null
+      });
+
+      // Step 3: Arbitration
+      steps.push({
+        step: 3,
+        phase: "modeling",
+        phaseName: "并行建模",
+        title: "Step 3: 方案决策与人类评审",
+        agent: "模型仲裁智能体",
+        description: `评估两套提报模型在计算效率与精度上的优劣，决策最终主导模型。`,
+        inputs: ["models/m1_discrete/proposal.md", "models/m2_continuous/proposal.md"],
+        outputs: ["models/method_selection.json"],
+        prompt: `对比 Proposal A 和 B 的优缺点，做出智能决策，并输出 method_selection.json。`,
+        logs: [
+          `[Selector Agent] 方案评估中...`,
+          `[Selector Agent] Proposal A（离散近似）逻辑简单但有累积截断误差。`,
+          `[Selector Agent] Proposal B（连续解析/解析求交）精度极高，数值稳定性好。`,
+          `[Selector Agent] 仲裁结果: 推荐采纳 Proposal B 作为核心求解模型。`,
+          `[System] 决策文件已生成: models/method_selection.json`
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: null
+      });
+
+      // Step 4: Final Equations
+      steps.push({
+        step: 4,
+        phase: "modeling",
+        phaseName: "并行建模",
+        title: "Step 4: 完整数学模型推导",
+        agent: "建模主推导智能体",
+        description: `精细化推导 ${meta.shortName} 的联立约束方程、边界条件与目标函数。`,
+        inputs: ["models/method_selection.json"],
+        outputs: ["models/m_final_equations.md", "models/m_final_vars.json"],
+        prompt: `基于选定的模型方案，写出完整的数学模型公式，定义所有决策变量和目标优化目标。`,
+        logs: [
+          `[Model Builder Agent] 确定数学方程组：定义自变量、因变量与状态转移方程。`,
+          `[Model Builder Agent] 成功建立了目标优化目标，包含 ${meta.shortName} 核心目标约束。`,
+          `[System] 导出数学公式和变量清单至 models/m_final_equations.md`
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: null
+      });
+
+      // Step 5: Solver code & run
+      steps.push({
+        step: 5,
+        phase: "solving",
+        phaseName: "求解建模",
+        title: "Step 5: 优化算法实现与求解",
+        agent: "代码求解智能体",
+        description: `调用 solver_submit.sh 异步提交并运行 ${lang} 求解程序 ${solverFile}，输出优化结果数据。`,
+        inputs: ["models/m_final_equations.md"],
+        outputs: [`models/m3_solver/${solverFile}`, "models/m3_solver/opt_results.json"],
+        prompt: `编写 ${lang} 代码来实现上述推导的数学模型。计算最优控制序列，并在 opt_results.json 中存储关键指标。`,
+        logs: [
+          `[Solver Agent] 正在编写基于 ${lang} 的核心数学求解器...`,
+          `[System] 通过 solver_submit.sh 异步提交求解任务 #JOB_${key.toUpperCase()}...`,
+          `[Solver CLI] 正在执行优化迭代计算，求解最优目标函数值...`,
+          `[Solver CLI] 运算成功！最优解已收敛。`,
+          `[System] 导出优化数值结果至: models/m3_solver/opt_results.json`
+        ],
+        code: meta.code,
+        visual: {
+          type: "image",
+          url: "images/fig-robust.png",
+          title: `Step 5: ${meta.shortName} 优化求解器的迭代收敛过程及稳态解分布`
+        },
+        paper: null
+      });
+
+      // Step 6: Sensitivity Analysis
+      steps.push({
+        step: 6,
+        phase: "solving",
+        phaseName: "求解建模",
+        title: "Step 6: 鲁棒性与参数灵敏度校验",
+        agent: "数据分析智能体",
+        description: `对核心参数进行二维扰动扫描，评估模型的学术说服力与参数敏感性。`,
+        inputs: ["models/m3_solver/opt_results.json"],
+        outputs: ["models/m4_sensitivity/robust_check.py", "models/m4_sensitivity/sensitivity.json"],
+        prompt: `针对模型中的关键参数，在 ±10% 范围内进行敏感性扰动测试，分析目标函数的偏导数与波动范围，并绘制 Tornado 图。`,
+        logs: [
+          `[Data Analyst Agent] 开始对核心参数进行灵敏度扫描...`,
+          `[Data Analyst Agent] 测试参数在扰动下目标函数的响应曲线，计算雅可比矩阵。`,
+          `[Data Analyst Agent] 结果显示目标波动在 [-2.4%, +3.1%] 之间，具有极佳的数学稳定性。`,
+          `[System] 输出敏感度数据: models/m4_sensitivity/sensitivity.json`
+        ],
+        code: "",
+        visual: {
+          type: "image",
+          url: "images/fig-tornado.png",
+          title: `Step 6: 关键敏感性因子对 ${meta.shortName} 优化目标影响的 Tornado 图`
+        },
+        paper: null
+      });
+
+      // Step 7: AHP / Evaluation
+      steps.push({
+        step: 7,
+        phase: "solving",
+        phaseName: "求解建模",
+        title: "Step 7: 综合评估与方案比对",
+        agent: "模型评估智能体",
+        description: `基于 ${meta.evaluationMetric} 建立层次分析法 (AHP) 或模糊综合评价模型，对求解方案进行权值打分与一致性检验。`,
+        inputs: ["models/m3_solver/opt_results.json"],
+        outputs: ["models/m5_evaluation/evaluation_report.md"],
+        prompt: `基于多目标决策，建立综合评价矩阵，计算最大特征值，验证一致性比例 CR < 0.1。`,
+        logs: [
+          `[Evaluator Agent] 建立评价层次。评价指标：${meta.evaluationMetric}。`,
+          `[Evaluator Agent] 计算一致性指标：CI = 0.012, RI = 0.58. 一致性比例 CR = 0.021 < 0.1. 一致性通过。`,
+          `[Evaluator Agent] 评估报告输出成功，最优决策得分显著领先。`
+        ],
+        code: "",
+        visual: {
+          type: "image",
+          url: "images/fig-ahp.png",
+          title: `Step 7: ${meta.shortName} 多目标决策的 AHP 指标权重树状分布与打分比对`
+        },
+        paper: null
+      });
+
+      // Step 8: Image Polish
+      steps.push({
+        step: 8,
+        phase: "solving",
+        phaseName: "求解建模",
+        title: "Step 8: 论文矢量图绘制与抛光",
+        agent: "绘图 polish 智能体",
+        description: `使用 Python Matplotlib 美化输出图片，生成适合 LaTeX 排版的高分辨率矢量图表。`,
+        inputs: ["models/m3_solver/opt_results.json"],
+        outputs: [`papers/figures/${key}_plot.png`],
+        prompt: `提取求解数据，绘制高质量的学术配色趋势对比图，保存为矢量 PNG 文件。`,
+        logs: [
+          `[Visual Agent] 正在读取模型数据并配置学术期刊级绘图风格...`,
+          `[Visual Agent] 自动渲染无失真矢量图，添加 LaTeX 公式标注。`,
+          `[System] 高精度图表保存完毕: papers/figures/${key}_plot.png`
+        ],
+        code: "",
+        visual: {
+          type: "image",
+          url: "images/fig-scenario.png",
+          title: `Step 8: 美化后的 ${meta.shortName} 二维状态转换与空间约束仿真示意图`
+        },
+        paper: null
+      });
+
+      // Step 9: LaTeX draft
+      steps.push({
+        step: 9,
+        phase: "writing",
+        phaseName: "论文撰写",
+        title: "Step 9: LaTeX 论文初稿起草",
+        agent: "论文起草智能体",
+        description: `利用国赛标准 LaTeX 排版模板，起草 ${meta.shortName} 学术论文，生成摘要页、核心公式与表格。`,
+        inputs: ["models/m_final_equations.md", `papers/figures/${key}_plot.png`],
+        outputs: ["papers/paper_draft.tex"],
+        prompt: `使用全国大学生数学建模竞赛论文标准排版规范，自动构建 LaTeX 整体大纲与主要正文公式。`,
+        logs: [
+          `[Writer Agent] 加载国赛标准 LaTeX 论文模板...`,
+          `[Writer Agent] 自动写入标题: ${meta.paperTitle}...`,
+          `[Writer Agent] 生成 LaTeX 摘要部分、符号定义表以及求解公式。`,
+          `[System] 论文初稿写入完成: papers/paper_draft.tex`
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: {
+          page: 1,
+          title: meta.paperTitle,
+          content: meta.paperAbstract,
+          image: "images/paper2024b-01.png"
+        }
+      });
+
+      // Step 10: Gate 1
+      steps.push({
+        step: 10,
+        phase: "writing",
+        phaseName: "论文撰写",
+        title: "Step 10: 一致性门禁检测 (Gate 1)",
+        agent: "一致性门禁校验脚本",
+        description: `自动核对 LaTeX 文档中的数值指标与 Python 求解输出的数据，确保学术报告前后一致。`,
+        inputs: ["models/m3_solver/opt_results.json", "papers/paper_draft.tex"],
+        outputs: ["papers/consistency_report.json"],
+        prompt: `对 LaTeX 文件中的文本数值进行正则提取，并与 solver 输出的 JSON 核心数值进行比对。`,
+        logs: [
+          `[Gate 1 CLI] 启动 LaTeX 与 Python 求解数据一致性校验脚本...`,
+          `[Gate 1 CLI] 提取 opt_results.json 与 paper_draft.tex 进行联立核对...`,
+          `[Gate 1 CLI] ${meta.gate1Logs}`
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: null
+      });
+
+      // Step 11: Reviewer
+      steps.push({
         step: 11,
         phase: "writing",
         phaseName: "论文撰写",
         title: "Step 11: 学术质量审查与漏洞挑刺",
         agent: "盲审评阅专家智能体",
-        description: "扮演严格的研究生论文盲审老师，对排版细节、公式逻辑错误、分析缺失进行苛刻审查，并开出问题清单（Critique Report）。",
-        inputs: ["papers/paper_draft.tex", "papers/consistency_report.json"],
+        description: `扮演竞赛评审专家，对排版规范、逻辑漏洞及公式表达进行挑刺并输出修改清单。`,
+        inputs: ["papers/paper_draft.tex"],
         outputs: ["papers/review_critique.md"],
-        prompt: "你是一个苛刻的数学建模竞赛评委。请通读我们的 Latex 论文，指出公式排版不规范、敏感性分析自变量选取不够多、模型假设过于理想化等 5 处严重问题，写在 review_critique.md 中，命令下游 Agent 修改。",
+        prompt: `模拟严格的论文盲审流程，指出公式不平衡、表述欠妥 and 灵敏度分析深度不足等 3 处以上痛点。`,
         logs: [
-          "[Reviewer Agent] 开始对论文 LaTeX 初稿进行严格评审...",
-          "[Reviewer Agent] 评审完毕。指出 3 处缺陷：1) 符号表中符号 alpha 与 eta 重合; 2) 缺少风向扰动的数值稳定性模拟; 3) 论文第二页公式 (4.2) 左右括号不匹配。",
-          "[System] 生成评审报告: papers/review_critique.md. 状态：异常，触发下游自动修复流程。"
+          `[Reviewer Agent] 开始对论文 LaTeX 初稿进行学术评审...`,
+          `[Reviewer Agent] 发现 3 处缺陷：1) 部分变量符号未在对照表中列出; 2) 图表缺少清晰的标题说明; 3) 参考文献引用格式不规范。`,
+          `[System] 生成评审报告: papers/review_critique.md. 触发自动修复流程。`
         ],
         code: "",
         visual: { type: "placeholder" },
         paper: null
-      },
-      {
+      });
+
+      // Step 12: Editor
+      steps.push({
         step: 12,
         phase: "writing",
         phaseName: "论文撰写",
         title: "Step 12: 智能体协同对账与修改",
         agent: "论文纠错与修改组",
-        description: "根据盲审意见报告自动进行增量修补。调用正则替换与文本改写，修正 LaTeX 排版错误，重新生成公式，并将重算数据补充写入正文。",
+        description: `根据审查清单自动修改 LaTeX 源码，重新校正格式，增量修补。`,
         inputs: ["papers/review_critique.md", "papers/paper_draft.tex"],
         outputs: ["papers/paper_revised.tex"],
-        prompt: "根据 review_critique.md 的漏洞清单，编辑并修正 paper_draft.tex 中的公式括号错误，统一符号命名冲突，生成修改后的 paper_revised.tex。",
+        prompt: `针对 review_critique.md 的每一条意见，使用 LaTeX 差异补丁对论文初稿进行自动修改和重构。`,
         logs: [
-          "[Editor Agent] 加载初稿及审查清单...",
-          "[Editor Agent] 正在修正第二页公式 (4.2) 的括号平衡: (a + b) 修正为 \\left( a+b \\right)...",
-          "[Editor Agent] 重新融合符号表变量，修改 alpha 的定义为镜面入射偏角...",
-          "[System] 修改完毕，输出修订版代码: papers/paper_revised.tex"
+          `[Editor Agent] 加载初稿及审查清单...`,
+          `[Editor Agent] 自动补齐变量对照表中的缺失定义...`,
+          `[Editor Agent] 重构图表标题，使图表自明性更强...`,
+          `[System] 修复完毕，输出修订版代码: papers/paper_revised.tex`
         ],
         code: "",
         visual: { type: "placeholder" },
         paper: null
-      },
-      {
+      });
+
+      // Step 13: Gate 2
+      steps.push({
         step: 13,
         phase: "writing",
         phaseName: "论文撰写",
         title: "Step 13: 虚拟评阅人判定门禁 (Gate 2)",
         agent: "竞赛评委判定智能体",
-        description: "依据历年国赛/美赛官方 O 奖评语及评分细则建立的虚拟评委打分模型。对论文的创新点、逻辑链、可读性做出最终模拟判定，打分 CR 达标则放行编译。",
+        description: `基于历年获奖论文特质和评分细则，建立量化评分模型对论文进行模拟打分与最终判定。`,
         inputs: ["papers/paper_revised.tex"],
         outputs: ["papers/simulated_judging.json"],
-        prompt: "你作为 2024 CUMCM/MCM 评审组副组长，对修订后的论文打分。根据模型原创度、三维仿真细节、图表整洁性以及数据高度一致性评级，判断该论文是否达到优秀奖/一等奖（F奖/O奖）候选水平。输出打分细节与评语。",
+        prompt: `依据竞赛阅卷打分表对论文各章节进行打分，给出综合评审学术评语。`,
         logs: [
-          "[Judge Agent] 启动赛题标准评阅人打分模型...",
-          "[Judge Agent] 评定得分: 模型结构完整性: 92/100, 求解结果正确性: 95/100, 排版美观度: 90/100.",
-          "[Judge Agent] 模拟评语：论文行文规范，基于光学物理的三维几何投影计算极其硬核，计算出的余弦效率在镜场中分布极具规律；稳健性测试扎实，图表清晰。建议通过，推荐一等奖级别。",
-          "[System] 评阅通过，分值 92.4分。生成: papers/simulated_judging.json"
+          `[Judge Agent] 启动标准评阅人打分模型...`,
+          `[Judge Agent] 评定得分: 完整性: 94/100, 求解正确性: 92/100, 排版美学: 93/100.`,
+          `[Judge Agent] 模拟评议：论文对 ${meta.shortName} 的模型建立及求解极其扎实，数值结果高可信。建议通过，推荐一等奖候选。`,
+          `[System] 评阅通过，综合得分 93.0 分。生成: papers/simulated_judging.json`
         ],
         code: "",
         visual: { type: "placeholder" },
         paper: null
-      },
-      {
+      });
+
+      // Step 14: Polish Abstract
+      steps.push({
         step: 14,
         phase: "writing",
         phaseName: "论文撰写",
         title: "Step 14: 中英文摘要深度抛光",
         agent: "学术润色智能体",
-        description: "摘要是数模竞赛的第一门面。该步利用专业的摘要打磨 Prompt，提炼论文的核心求解精度、算法名称和核心结论，使摘要达到“短、精、强”的学术标准。",
+        description: `提炼论文的核心算法与结论，进行双语摘要的精简与加粗美化，使其更具学术分量。`,
         inputs: ["papers/paper_revised.tex", "papers/simulated_judging.json"],
         outputs: ["papers/paper_final_abstract.tex"],
-        prompt: "优化当前论文的摘要。删除拖泥带水的背景叙述，直接突出核心模型（三维投影反射几何模型 + 全局粒子群优化算法）、求解出的具体数据结果（定日镜面数、年均热功率增幅等）以及敏感性测试下的波动阈值，确保评委一眼看中。",
+        prompt: `打磨摘要，删去冗长常识背景，着重凸显论文所提出的新方法及关键的量化求解精度。`,
         logs: [
-          "[Polisher Agent] 对学术摘要进行精简和提纯...",
-          "[Polisher Agent] 重点标粗了本项研究的量化贡献：‘相比常规排布，阴影面积缩小 14.8%，使得年均输出热能提升了 12%’。",
-          "[System] 输出精雕摘要: papers/paper_final_abstract.tex"
+          `[Polisher Agent] 对论文中英文摘要进行深度美化...`,
+          `[Polisher Agent] 突出主要模型贡献，加粗核心结果指标。`,
+          `[System] 摘要抛光完成: papers/paper_final_abstract.tex`
         ],
         code: "",
         visual: { type: "placeholder" },
         paper: null
-      },
-      {
+      });
+
+      // Step 15: Linter
+      steps.push({
         step: 15,
         phase: "writing",
         phaseName: "论文撰写",
         title: "Step 15: 终稿格式校验与目录对齐",
         agent: "文献引用与拼写检查器",
-        description: "全面排查文献交叉引用、图表编号连续性、拼写语法问题，对 LaTeX 代码中的图表排版进行最终微调对齐。",
+        description: `排查 LaTeX 语法、引用悬空、交叉索引图表一致性，做最终的交付前格式扫描。`,
         inputs: ["papers/paper_final_abstract.tex"],
         outputs: ["papers/paper_final.tex"],
-        prompt: "核对论文中的所有 bib 参考文献引用，修复未定义的 label，并检查正文中引用的图表序列（如 Figure 1, Figure 2）是否按顺序递增，确认无悬空图表。",
+        prompt: `扫描主 LaTeX 文件以检测拼写和交叉引用引用错误。`,
         logs: [
-          "[Linter Agent] 启动参考文献及图表引用格式校验...",
-          "[Linter Agent] 自动补齐 4 处参考文献的 bibtex 引用索引号...",
-          "[Linter Agent] 正文图表标号顺序扫描：[图1.1 -> 图1.2 -> 图2.1]，顺序正确，无未定义图表标签。",
-          "[System] 输出终版本 LaTeX 主源码: papers/paper_final.tex"
+          `[Linter Agent] 启动引用关系及格式最终自检...`,
+          `[Linter Agent] 自动对齐 BibTeX 引用标识并消除拼写警告。`,
+          `[System] 校验无误。输出编译主文件: papers/paper_final.tex`
         ],
         code: "",
         visual: { type: "placeholder" },
         paper: null
-      },
-      {
+      });
+
+      // Step 16: Compile and zip
+      steps.push({
         step: 16,
         phase: "writing",
         phaseName: "论文撰写",
         title: "Step 16: LaTeX 编译与打包压缩交付",
         agent: "系统交付脚本 (compile_paper.sh)",
-        description: "自动调用 `compile_paper.sh` 调用 xelatex 进行编译（进行 BibTeX - xelatex - xelatex 三次编译），生成高质量学术 PDF 放入 `papers/`。最后将求解代码、参数配置、仿真图和 PDF 打包归档为待提交压缩包。",
+        description: `自动编译 LaTeX 源码生成 PDF 论文，并将代码、数据与 PDF 打包为竞赛标准提交压缩包。`,
         inputs: ["papers/paper_final.tex"],
-        outputs: ["papers/solar_heliostat_final.pdf", "papers/solar_heliostat_submission.zip"],
-        prompt: "调用 xelatex 命令行对 paper_final.tex 进行三次迭代编译。确保数学公式与中文字体正常渲染，生成最终论文 PDF 文件，并将整个 workspace 按照组委会格式压缩打包。",
+        outputs: [`papers/${finalPdf}`, `papers/${finalZip}`],
+        prompt: `编译整个 LaTeX 论文并在 artifacts 目录下生成最终 PDF 文件，打包工作区并生成最终 ZIP 压缩包。`,
         logs: [
-          "[System] 调用 compile_paper.sh 编译终端命令: xelatex -interaction=nonstopmode paper_final.tex",
-          "[System] [XeLaTeX] 编译中, 正在处理字体映射...",
-          "[System] [XeLaTeX] 编译第一遍, 生成辅助文件 paper_final.aux...",
-          "[System] [XeLaTeX] 编译第二遍, 建立公式符号索引...",
-          "[System] [XeLaTeX] 编译第三遍, 渲染最终图表嵌入...",
-          "[System] 编译成功！成功生成高质量学术论文: papers/solar_heliostat_final.pdf (大小: 1.2 MB)",
-          "[System] 压缩打包程序代码与 PDF 交付物: papers/solar_heliostat_submission.zip",
-          "[System] 管道执行全部成功！将当前项目由 ongoing/ 搬移至: complete/solar_heliostat_2024b",
-          "[System] == Modeling Factory 流水线运行结束 =="
+          `[System] 自动调用 compile_paper.sh 编译 LaTeX 并渲染公式与矢量图表...`,
+          `[System] 编译成功！生成高质量学术论文: papers/${finalPdf} (大小: 1.2 MB)`,
+          `[System] 压缩打包程序代码与 PDF 交付物: papers/${finalZip}`,
+          `[System] 管道执行成功！项目已搬移至: complete/${key}_completed`,
+          `[System] == Modeling Factory 流水线运行结束 ==`
         ],
         code: "",
         visual: {
           type: "image",
           url: "images/paper2024b-01.png",
-          title: "Step 16: 编译生成的全国一等奖候选论文封面及摘要页"
+          title: `Step 16: 编译生成的《${meta.paperTitle}》一等奖候选论文预览`
         },
         paper: {
           page: 1,
-          title: "基于三维几何投影与全局粒子群算法的定日镜场排布优化设计",
-          content: `<h3>摘 &nbsp; 要</h3>
-<p class="paper-abstract-p">本文针对太阳能光热电站定日镜场的优化设计与控制问题，建立了一套基于三维向量光学几何投影的效率计算模型，并设计了一种新型定日镜场优化排布算法。首先，推导了定日镜法向量与太阳位置向量的精确解析方程，计算了关键的余弦损失率。通过三维射线几何投影裁剪算法，定量计算了多镜交互情况下的阴影遮挡损失。在大气透射率和集热聚焦效率方程的基础上，以最大化单位面积热功率为目标，建立粒子群参数最优化模型。结果显示，我们的设计能使镜面年均总效率相比对称式布局提升 14.8%...</p>
-<p class="paper-abstract-p"><b>关键词：</b>定日镜场；余弦损失；三维投影裁剪；粒子群算法；稳健性设计</p>
+          title: meta.paperTitle,
+          content: meta.paperAbstract,
+          image: "images/paper2024b-01.png"
+        }
+      });
+
+      return steps;
+    }
+
+    const PROBLEMS_METADATA = {
+      cumcm_2024a: {
+        title: "CUMCM 2024 A题 - “板凳龙”闹元宵",
+        heroTitle: "等距螺线板凳龙多智能体流水线 (CUMCM 2024A)",
+        heroDesc: "基于等距螺线运动学模型与多刚体铰接约束，实现舞龙队位置、速度递推求解及 S 弯调头曲率优化。",
+        shortName: "“板凳龙”",
+        params: "龙身共 223 节，龙头长 3.41m，龙身与龙尾长 2.20m，螺距 55cm，龙头行进速度 1.0m/s",
+        subject: "阿基米德螺线极坐标运动学与刚体摆动干涉约束",
+        language: "Python",
+        solverFile: "solve_dragon.py",
+        gate1Logs: "提取 opt_results.json 关键值：碰撞时间 t = 412.5s，碰撞位置距中心 22.3m... 一致性校验通过。",
+        evaluationMetric: "螺线盘入极值直径与 S 弯调头空间（9m限制）",
+        finalPdf: "bench_dragon_final.pdf",
+        finalZip: "bench_dragon_submission.zip",
+        paperTitle: "基于连杆约束与非线性规划的“板凳龙”运动学仿真与路径优化",
+        paperAbstract: `<h3>摘 &nbsp; 要</h3>
+<p class="paper-abstract-p">本文针对“板凳龙”元宵舞龙活动中的路径规划与避障问题，建立了一套基于阿基米德螺线与多刚体连杆铰接约束的几何运动学模型。通过龙头速度 1m/s 与螺距 55cm 的约束条件，采用刚性圆弧交线法推导了各节板凳前把手与后把手在三维/二维空间中的运动学状态微分方程。仿真结果表明，随着龙队不断盘入，相邻板凳在第 412.5 秒时发生碰撞干涉，位置距离螺线中心 22.3 米。随后，对 S 弯调头曲线建立了切线相切约束条件，求解出最小调头圆弧半径...</p>
+<p class="paper-abstract-p"><b>关键词：</b>板凳龙；阿基米德螺线；刚体连杆；非线性规划；运动学仿真</p>
 <h3>1. 问题背景与分析</h3>
-<p class="paper-abstract-p">太阳能光热电站通过数以千计的定日镜将太阳辐射聚焦于吸收塔顶部的集热器上。定日镜在反射阳光时，由于入射方向与法向夹角不同会产生余弦损失；由于定日镜相互靠拢，又会产生阴影与遮挡损失。本题要求我们通过优化镜场排布和镜面法线角度，最大化年均单位面积输出热功率，极具应用价值...</p>`,
-          image: "images/paper2024b-01.png"
-        }
-      }
-    ];
+<p class="paper-abstract-p">“板凳龙”闹元宵是浙闽地区重要的民俗活动。舞龙队通过将数百节板凳连接成链条。为了提升观赏性，需要在不发生碰撞的前提下盘入并顺利盘出。这就要求我们求解各个时刻每节车厢的位置、速度，并确定碰撞临界状态...</p>`,
+        code: `import numpy as np
 
-    const MCM_TAIL_STEPS = [
-      {
-        step: 11,
-        phase: "writing",
-        phaseName: "论文撰写",
-        title: "Step 11: 学术质量审查与漏洞挑刺",
-        agent: "盲审评阅专家智能体",
-        description: "扮演严格的研究生论文盲审老师，对排版细节、公式逻辑错误、分析缺失进行苛刻审查，并开出问题清单（Critique Report）。",
-        inputs: ["papers/paper_draft.tex", "papers/consistency_report.json"],
-        outputs: ["papers/review_critique.md"],
-        prompt: "你是一个苛刻的数学建模竞赛评委。请通读我们的 Latex 论文，指出公式排版不规范、敏感性分析自变量选取不够多、模型假设过于理想化等 5 处严重问题，写在 review_critique.md 中，命令下游 Agent 修改。",
-        logs: [
-          "[Reviewer Agent] 开始对论文 LaTeX 初稿进行严格评审...",
-          "[Reviewer Agent] 评审完毕。指出 3 处缺陷：1) 符号表中的 $M(t)$ 与马氏转移状态概率符号冲突; 2) 缺少温网女单决赛数据集的交叉验证; 3) 论文第三页公式 (5.3) 积分上下限错误。",
-          "[System] 生成评审报告: papers/review_critique.md. 状态：异常，触发下游自动修复流程。"
-        ],
-        code: "",
-        visual: { type: "placeholder" },
-        paper: null
+def solve_dragon_positions(t_max=300, p=0.55):
+    """
+    自龙头向龙尾迭代求解各节板凳极角
+    """
+    positions = []
+    for t in range(t_max + 1):
+        # 龙头沿螺线以 1m/s 前行
+        head_theta = get_head_theta_at_time(t)
+        coords = [spiral_pos(head_theta, p)]
+        # 后续板凳满足铰接距离约束
+        for i in range(222):
+            next_theta = solve_next_theta(coords[-1], d=2.20, p=p)
+            coords.append(spiral_pos(next_theta, p))
+        positions.append(coords)
+    return positions`
       },
-      {
-        step: 12,
-        phase: "writing",
-        phaseName: "论文撰写",
-        title: "Step 12: 智能体协同对账与修改",
-        agent: "论文纠错与修改组",
-        description: "根据盲审意见报告自动进行增量修补。调用正则替换与文本改写，修正 LaTeX 排版错误，重新生成公式，并将重算数据补充写入正文。",
-        inputs: ["papers/review_critique.md", "papers/paper_draft.tex"],
-        outputs: ["papers/paper_revised.tex"],
-        prompt: "根据 review_critique.md 的漏洞清单，编辑并修正 paper_draft.tex 中的公式括号错误，统一符号命名冲突，生成修改后的 paper_revised.tex。",
-        logs: [
-          "[Editor Agent] 加载初稿及审查清单...",
-          "[Editor Agent] 正在修正第三页公式 (5.3) 的积分区间...已校准完毕。",
-          "[Editor Agent] 重新融合符号表变量，区分 $M(t)$ 与状态 $S$...已修改到位。",
-          "[System] 修改完毕，输出修订版代码: papers/paper_revised.tex"
-        ],
-        code: "",
-        visual: { type: "placeholder" },
-        paper: null
-      },
-      {
-        step: 13,
-        phase: "writing",
-        phaseName: "论文撰写",
-        title: "Step 13: 虚拟评阅人判定门禁 (Gate 2)",
-        agent: "竞赛评委判定智能体",
-        description: "依据历年国赛/美赛官方 O 奖评语及评分细则建立的虚拟评委打分模型。对论文的创新点、逻辑链、可读性做出最终模拟判定，打分 CR 达标则放行编译。",
-        inputs: ["papers/paper_revised.tex"],
-        outputs: ["papers/simulated_judging.json"],
-        prompt: "你作为 2024 CUMCM/MCM 评审组副组长，对修订后的论文打分。根据模型原创度、三维仿真细节、图表整洁性以及数据高度一致性评级，判断该论文是否达到优秀奖/一等奖（F奖/O奖）候选水平。输出打分细节与评语。",
-        logs: [
-          "[Judge Agent] 启动赛题标准评阅人打分模型...",
-          "[Judge Agent] 评定得分: 模型结构完整性: 94/100, 求解结果正确性: 92/100, 排版美观度: 91/100.",
-          "[Judge Agent] 模拟评语：论文行文流畅，势头动力学模型与马尔可夫状态链的结合极其巧妙；能够有效预测温网比赛的多次反转点；对选手心理波动的蒙特卡洛仿真十分扎实。建议通过，推荐一等奖候选。",
-          "[System] 评阅通过，分值 93.2分。生成: papers/simulated_judging.json"
-        ],
-        code: "",
-        visual: { type: "placeholder" },
-        paper: null
-      },
-      {
-        step: 14,
-        phase: "writing",
-        phaseName: "论文撰写",
-        title: "Step 14: 中英文摘要深度抛光",
-        agent: "学术润色智能体",
-        description: "摘要是数模竞赛的第一门面。该步利用专业的摘要打磨 Prompt，提炼论文的核心求解精度、算法名称和核心结论，使摘要达到“短、精、强”的学术标准。",
-        inputs: ["papers/paper_revised.tex", "papers/simulated_judging.json"],
-        outputs: ["papers/paper_final_abstract.tex"],
-        prompt: "优化当前论文的摘要。删除拖泥带水的背景叙述，直接突出核心模型（三维投影反射几何模型 + 全局粒子群优化算法）、求解出的具体数据结果（定日镜面数、年均热功率增幅等）以及敏感性测试下的波动阈值，确保评委一眼看中。",
-        logs: [
-          "[Polisher Agent] 对学术摘要进行精简和提纯...",
-          "[Polisher Agent] 优化英文表达，删除非学术字眼。将摘要首句修改为明确的时序动力学框架描述。",
-          "[Polisher Agent] 重点标粗了本项研究的量化贡献：‘模型在温网决赛数据集上的转折点检测准确率达到了 84.2%’。",
-          "[System] 输出精雕摘要: papers/paper_final_abstract.tex"
-        ],
-        code: "",
-        visual: { type: "placeholder" },
-        paper: null
-      },
-      {
-        step: 15,
-        phase: "writing",
-        phaseName: "论文撰写",
-        title: "Step 15: 终稿格式校验与目录对齐",
-        agent: "文献引用与拼写检查器",
-        description: "全面排查文献交叉引用、图表编号连续性、拼写语法问题，对 LaTeX 代码中的图表排版进行最终微调对齐。",
-        inputs: ["papers/paper_final_abstract.tex"],
-        outputs: ["papers/paper_final.tex"],
-        prompt: "核对论文中的所有 bib 参考文献引用，修复未定义的 label，并检查正文中引用的图表序列（如 Figure 1, Figure 2）是否按顺序递增，确认无悬空图表。",
-        logs: [
-          "[Linter Agent] 启动参考文献及图表引用格式校验...",
-          "[Linter Agent] 自动补齐 3 处参考文献的 bibtex 引用索引号...",
-          "[Linter Agent] 确认图表标号顺序无悬空图表。",
-          "[System] 输出终版本 LaTeX 主源码: papers/paper_final.tex"
-        ],
-        code: "",
-        visual: { type: "placeholder" },
-        paper: null
-      },
-      {
-        step: 16,
-        phase: "writing",
-        phaseName: "论文撰写",
-        title: "Step 16: LaTeX 编译与打包压缩交付",
-        agent: "系统交付脚本 (compile_paper.sh)",
-        description: "自动调用 `compile_paper.sh` 调用 pdflatex 进行编译（进行 BibTeX - pdflatex - pdflatex 三次编译），生成高质量学术 PDF 放入 `papers/`。最后将求解代码、参数配置、仿真图和 PDF 打包归档为待提交压缩包。",
-        inputs: ["papers/paper_final.tex"],
-        outputs: ["papers/tennis_momentum_final.pdf", "papers/tennis_momentum_submission.zip"],
-        prompt: "调用 pdflatex 命令行对 paper_final.tex 进行三次迭代编译。确保数学公式与英文排版正常渲染，生成最终论文 PDF 文件，并将整个 workspace 按照组委会格式压缩打包。",
-        logs: [
-          "[System] 调用 compile_paper.sh 编译终端命令: pdflatex -interaction=nonstopmode paper_final.tex",
-          "[System] [pdfLaTeX] 编译中...",
-          "[System] [pdfLaTeX] 编译第一遍, 生成辅助文件 paper_final.aux...",
-          "[System] [pdfLaTeX] 编译第二遍, 建立公式符号索引...",
-          "[System] [pdfLaTeX] 编译第三遍, 渲染最终图表嵌入...",
-          "[System] 编译成功！成功生成高质量学术论文: papers/tennis_momentum_final.pdf (大小: 980 KB)",
-          "[System] 压缩打包程序代码与 PDF 交付物: papers/tennis_momentum_submission.zip",
-          "[System] 管道执行全部成功！将当前项目由 ongoing/ 搬移至: complete/tennis_momentum_2024b",
-          "[System] == Modeling Factory 流水线运行结束 =="
-        ],
-        code: "",
-        visual: {
-          type: "image",
-          url: "images/paper2024b-01.png",
-          title: "Step 16: 编译生成的一等奖候选英文论文封面及摘要页"
-        },
-        paper: {
-          page: 1,
-          title: "Deciphering Tennis Momentum: A Markov State-Transition Model",
-          content: `<h3>Abstract</h3>
-<p class="paper-abstract-p">This paper provides a quantitative framework to analyze the elusive concept of 'momentum' in professional tennis matches. Utilizing Wimbledon historical feature data, we formulate a Markov State-Transition Model that captures the game point evolution. By overlaying time-series decay functions, we calculate the continuous momentum variation of players...</p>
-<p class="paper-abstract-p"><b>Keywords:</b> Tennis Momentum; Markov Chain; LSTM State Decay; Sensitivity Analysis; AHP Evaluation</p>
-<h3>1. Introduction</h3>
-<p class="paper-abstract-p">Momentum in tennis refers to the phenomenon where a sequence of successful plays shifts the psychological and physical advantage to one player, dramatically altering the probability of winning subsequent points. Although commentators frequently invoke this term, its mathematical representation and prediction remain challenging. In this study, we construct an analytical model...</p>`,
-          image: "images/paper2024b-01.png"
-        }
-      }
-    ];
-
-    const PROBLEMS_DATA = {
       cumcm_2024b: {
-        title: "CUMCM 2024 Problem B - 定日镜场优化设计",
-        heroTitle: "多智能体数学建模流水线 (CUMCM)",
-        heroDesc: "基于 CUMCM 2024 Problem B (定日镜场排布与控制优化) 的 16 步多智能体并行建模、求解、校验及 LaTeX 自动排版演示。",
-        steps: [
-          {
-            step: 0,
-            phase: "setup",
-            phaseName: "准备阶段",
-            title: "Step 0: 问题解析与 OCR 提取",
-            agent: "MinerU 解析智能体",
-            description: "利用 OCR 工具包 MinerU 对竞赛原始 PDF 进行深度解析，自动切分段落、转换繁琐公式为标准 LaTeX，并解析镜场位置坐标表格。",
-            inputs: ["problem.pdf"],
-            outputs: ["problem/problem_parsed.md", "problem/tables_extracted/table_coords.csv"],
-            prompt: "你是一个专业的学术文献 OCR 解析智能体。请读取定日镜场优化问题 PDF，忽略非结构化噪声，精准提取圆形定日镜场半径（350m）、吸收塔高度（80m）、镜片尺寸（6m x 6m）等参数，并将公式提取成规范的 Latex 格式。",
-            logs: [
-              "[System] 初始化项目目录: ongoing/solar_heliostat_2024b",
-              "[System] 挂载原始问题 PDF: CUMCM_2024_Problem_B.pdf",
-              "[MinerU Agent] 正在调用 MinerU 解析 PDF 文本...",
-              "[MinerU Agent] 成功捕获 4 张表格，提取出 8 个空间解析几何公式。",
-              "[System] 生成 Markdown 结构化问题: problem/problem_parsed.md",
-              "[System] 成功解析定日镜场位置坐标数据，输出 CSV 至: problem/tables_extracted/table_coords.csv",
-              "[System] 步骤 0 检查完成。文件状态完整。"
-            ],
-            code: "",
-            visual: { type: "placeholder" },
-            paper: null
-          },
-          {
-            step: 1,
-            phase: "setup",
-            phaseName: "准备阶段",
-            title: "Step 1: 文献背景研究与方法预选",
-            agent: "学术文献研究智能体",
-            description: "对定日镜的阴影遮挡、阻挡、余弦损失等光学效率公式进行推导调研，选择基于三维向量旋转与解析几何的建模方案。",
-            inputs: ["problem/problem_parsed.md"],
-            outputs: ["research/literature_notes.md", "research/selected_methods.json"],
-            prompt: "你是一个资深的数学建模专家。针对定日镜场优化控制问题，请调研计算机几何、光学余弦损失计算模型以及阴影遮挡计算算法（如多边形裁切或网格点法），给出合理的预选数学建模方案路线，并记录在 literature_notes.md 中。",
-            logs: [
-              "[Research Agent] 开始检索与定日镜光学效率相关的学术模型...",
-              "[Research Agent] 文献研究完毕。余弦效率公式定义为：入射光线向量与定日镜法向量的夹角余弦。阴影与遮挡损失定义为：相邻镜片投影重叠的面积比例。",
-              "[Research Agent] 拟选定方案: 1) 解析几何法向量求解模型; 2) 蒙特卡洛多光束阴影模拟; 3) 遗传/退火算法优化排布。",
-              "[System] 写入文献摘要: research/literature_notes.md",
-              "[System] 写入方法预选: research/selected_methods.json"
-            ],
-            code: "",
-            visual: { type: "placeholder" },
-            paper: null
-          },
-          {
-            step: 2,
-            phase: "modeling",
-            phaseName: "并行建模",
-            title: "Step 2: 并行建模方案提报",
-            agent: "并行建模提报组",
-            description: "多智能体并行推导数学公式。Proposal A 提出完全几何解析模型，Proposal B 提出简化的离散网格投影遮挡模型，并分别编写了小规模求解 Demo 进行验证。",
-            inputs: ["research/selected_methods.json", "problem/tables_extracted/table_coords.csv"],
-            outputs: ["models/m1_analytical/proposal.md", "models/m2_discrete/proposal.md"],
-            prompt: "请同时探索两种不同的数学推导方向：A）基于三维镜面反射几何的精细遮挡模型；B）基于视线重合概率的统计简化模型。写出各自的数学公式，并针对小规模数据集（如10面镜子）写出演示求解 Python 代码，证明模型具备可解性。",
-            logs: [
-              "[System] 派发并行建模任务至: m1_analytical (智能体 A) 与 m2_discrete (智能体 B)",
-              "[Agent A] 开始推导三维球面镜面几何投影变换，建立反射向量方程...",
-              "[Agent B] 开始设计离散镜片采样射线追踪模型...",
-              "[Agent A] 验证完成。m1 方案在 10 面定日镜的测试集上运行良好，平均余弦效率 0.842。",
-              "[Agent B] 验证完成。m2 离散射线模型可处理大镜场，但单次遮挡算力消耗过大。",
-              "[System] 写入提报结果: models/m1_analytical/proposal.md 与 models/m2_discrete/proposal.md"
-            ],
-            code: `import numpy as np
-
-def calculate_sun_direction(declination, hour_angle, latitude):
-    """
-    计算太阳高度角和方位角对应的入射光线向量
-    """
-    lat_rad = np.radians(latitude)
-    dec_rad = np.radians(declination)
-    h_rad = np.radians(hour_angle)
-    
-    # 计算太阳高度角 sinh
-    sinh = np.sin(lat_rad)*np.sin(dec_rad) + np.cos(lat_rad)*np.cos(dec_rad)*np.cos(h_rad)
-    elevation = np.arcsin(sinh)
-    
-    # 计算太阳方位角 cosh
-    cosh = (np.sin(dec_rad) - np.sin(elevation)*np.sin(lat_rad)) / (np.cos(elevation)*np.cos(lat_rad))
-    cosh = np.clip(cosh, -1.0, 1.0)
-    azimuth = np.arccos(cosh)
-    if h_rad > 0:
-        azimuth = 2*np.pi - azimuth
-        
-    # 三维空间光线向量 (指向太阳)
-    sun_vec = np.array([
-        np.cos(elevation) * np.sin(azimuth),
-        np.cos(elevation) * np.cos(azimuth),
-        np.sin(elevation)
-    ])
-    return sun_vec / np.linalg.norm(sun_vec)`,
-            visual: {
-              type: "image",
-              url: "images/fig-scenario.png",
-              title: "Step 2: 太阳运行轨迹与多点入射角几何分析"
-            },
-            paper: null
-          },
-          {
-            step: 3,
-            phase: "modeling",
-            phaseName: "并行建模",
-            title: "Step 3: 方案决策与人类评审",
-            agent: "模型仲裁智能体",
-            description: "对比并行方案的拟合精度与时间复杂度。最终决定采纳 A 方案（三维几何投影）作为主干，以保证国赛论文所要求的极致物理精度。",
-            inputs: ["models/m1_analytical/proposal.md", "models/m2_discrete/proposal.md"],
-            outputs: ["models/method_selection.json"],
-            prompt: "评估 Proposal A 与 B 的优缺点，特别是计算耗时和余弦反射精度。综合给出仲裁报告，建议默认方案并写入 method_selection.json。如需人类修改，自动暂停并提示人类编辑该文件进行干预。",
-            logs: [
-              "[Selector Agent] 方案评估中...",
-              "[Selector Agent] 方案 A (三维几何解析模型) 精度更高 (数学误差 < 0.1%)，且在计算阴影遮挡效率时具有解析表达式形式，计算开销更稳定。",
-              "[Selector Agent] 方案 B (射线离散采样) 的随机误差在镜场边缘区域容易引起优化梯度抖动。",
-              "[Selector Agent] 仲裁结果: 推荐采纳 m1_analytical 并引入三维反射变换做敏感分析。",
-              "[System] 方案确认。无人类介入，自动流转至下一步骤。"
-            ],
-            code: "",
-            visual: { type: "placeholder" },
-            paper: null
-          },
-          {
-            step: 4,
-            phase: "modeling",
-            phaseName: "并行建模",
-            title: "Step 4: 完整数学模型推导",
-            agent: "建模主推导智能体",
-            description: "推导吸收塔采光口接收比例、定日镜聚焦截断效率、大气透射率、以及定日镜年均输出热功率的复杂双重积分方程，编写公式 LaTeX 源码。",
-            inputs: ["models/method_selection.json"],
-            outputs: ["models/m_final_equations.md", "models/m_final_vars.json"],
-            prompt: "你是一个严谨的数学家。请详细写出以下几个物理参数的积分表达式：1) 阴影与遮挡损失; 2) 大气透射损失（考虑镜面至吸收塔的斜距）; 3) 集热器聚焦效率。并将所有待优化变量（定日镜安装中心位置 $X_i, Y_i$, 镜子法向量）记录至 final_vars.json。",
-            logs: [
-              "[Model Builder Agent] 开始推推导镜场总效率公式: $\\eta = \\eta_{sb} \\cdot \\eta_{cos} \\cdot \\eta_{at} \\cdot \\eta_{trunc} \\cdot \\eta_{ref}$",
-              "[Model Builder Agent] 大气透射率公式推导：当斜距 $d < 1000$ 米时， $\\eta_{at} = 0.99321 - 0.0001176 d + 1.97\\times 10^{-8} d^2$",
-              "[Model Builder Agent] 确定优化目标函数：最大化年均单位面积输出热功率 $E = \\frac{1}{A_{total}} \\sum \\eta \\cdot I_{DNI} \\cdot A_{mirror}$",
-              "[System] 导出数学公式和优化变量清单至 ongoing/solar_heliostat_2024b/models/"
-            ],
-            code: "",
-            visual: { type: "placeholder" },
-            paper: null
-          },
-          {
-            step: 5,
-            phase: "solving",
-            phaseName: "求解建模",
-            title: "Step 5: 优化算法实现与求解",
-            agent: "代码求解智能体",
-            description: "编写高效的优化求解程序。调用 `solver_submit.sh` 在后台使用粒子群算法（PSO）和坐标轮换法联合求解 1718 面定日镜的坐标排布与法线角度控制，输出优化的坐标集与效率矩阵。",
-            inputs: ["models/m_final_equations.md", "problem/tables_extracted/table_coords.csv"],
-            outputs: ["models/m3_solver/solve_opt.py", "models/m3_solver/opt_results.json"],
-            prompt: "请基于 final_equations.md 编写 Python 优化程序。使用 SciPy.optimize 或粒子群（PSO）对定日镜场位置坐标进行全局搜寻。确保优化路径能绕过吸收塔的干涉区，最终求解出最大年均热效率。编写完毕后，使用 solver_submit.sh 提交运行。",
-            logs: [
-              "[Solver Agent] 开始编写全局参数优化器: models/m3_solver/solve_opt.py",
-              "[System] 通过 `solver_submit.sh` 异步运行求解任务 #JOB_20260605_B05...",
-              "[Solver CLI] 优化器正在迭代计算，当前迭代次数: 50/500, 当前最高单位年输出热功率: 0.582 kW/m²...",
-              "[Solver CLI] 当前迭代次数: 250/500, 优化结果逐步收敛...",
-              "[Solver CLI] 迭代完成。最优排布方案共包含定日镜 1684 面。镜面总效率提升了 14.8%，大气透射平均效率为 0.9632。",
-              "[System] 任务执行完毕。优化结果及参数写入: models/m3_solver/opt_results.json"
-            ],
-            code: `import numpy as np
-from scipy.optimize import minimize
-
-def calculate_shadowing_blocking(heliostat_pos, sun_vec):
-    """
-    解析几何方法求解多片定日镜之间在此太阳向量下的相互阻挡和遮挡面积
-    """
-    n_mirrors = len(heliostat_pos)
-    sb_efficiency = np.ones(n_mirrors)
-    # 镜场三维几何干涉过滤
-    for i in range(n_mirrors):
-        for j in range(n_mirrors):
-            if i == j: continue
-            dist = np.linalg.norm(heliostat_pos[i] - heliostat_pos[j])
-            if dist > 35: continue # 过滤安全间距之外的镜子
-            # 投影裁剪算法
-            overlap_ratio = get_projection_overlap(heliostat_pos[i], heliostat_pos[j], sun_vec)
-            sb_efficiency[i] *= (1.0 - overlap_ratio)
-    return sb_efficiency
-
-def get_projection_overlap(pos_i, pos_j, sun_vec):
-    # 模拟两面相邻镜子的重影区域
-    # delta 投影向量差
-    vec_ij = pos_j - pos_i
-    proj_dist = np.dot(vec_ij, sun_vec)
-    lateral_dist = np.linalg.norm(vec_ij - proj_dist * sun_vec)
-    if lateral_dist < 8.5: # 镜面长 6m, 宽 6m, 临界间距
-        return max(0, 1 - (lateral_dist / 8.5))
-    return 0.0`,
-            visual: {
-              type: "image",
-              url: "images/fig-robust.png",
-              title: "Step 5: 全局粒子群优化 (PSO) 定日镜场多圈径向坐标排布收敛轨迹"
-            },
-            paper: null
-          },
-          {
-            step: 6,
-            phase: "solving",
-            phaseName: "求解建模",
-            title: "Step 6: 鲁棒性与参数灵敏度校验",
-            agent: "数据分析智能体",
-            description: "改变自变量参数（如风载引起的定日镜法向扰动误差、不同月份DNI辐照度、吸收塔反射效率），进行敏感性扫描测试，输出模型鲁棒度指标与 Tornado 贡献度图表。",
-            inputs: ["models/m3_solver/opt_results.json"],
-            outputs: ["models/m4_sensitivity/robust_check.py", "models/m4_sensitivity/sensitivity.json"],
-            prompt: "编写脚本分析反射法向量的微小偏移（0.1~0.5度误差）对总体接收热效率的灵敏度，并计算在极端阴雨天气、设备折旧等情境下系统输出的鲁棒性上限。输出结果并画出敏感度 Tornado 关系图。",
-            logs: [
-              "[Data Analyst Agent] 加载最优解 opt_results.json ...",
-              "[Data Analyst Agent] 正在对镜面追踪指向误差进行扰动扫描 (扰动范围: -0.5度 至 +0.5度)...",
-              "[Data Analyst Agent] 当指向误差达到 0.15度 时，集热截断效率从 94.2% 下降至 89.1%。",
-              "[Data Analyst Agent] 当指向误差超过 0.35度 时，系统将发生急剧的热流溢出，热效率受风载扰动较大。模型提出了加权稳健设计机制以提高鲁棒性。",
-              "[System] 输出稳健分析数据: models/m4_sensitivity/sensitivity.json"
-            ],
-            code: `def run_sensitivity_analysis(opt_coords, max_tilt_error):
-    """
-    仿真风载导致镜子法向量发生微小偏转扰动时，集热器截断效率的衰减曲线
-    """
-    errors = np.linspace(0.0, max_tilt_error, 10)
-    system_efficiency = []
-    
-    for err in errors:
-        # 给所有定日镜法向量加上随机微扰噪声
-        perturbed_normals = generate_random_tilt(err)
-        eff = simulate_field_efficiency(opt_coords, perturbed_normals)
-        system_efficiency.append(eff)
-        
-    return errors, system_efficiency`,
-            visual: {
-              type: "image",
-              url: "images/fig-tornado.png",
-              title: "Step 6: 不同气象扰动参数对定日镜场总体截断效率的灵敏度 Tornado 图"
-            },
-            paper: null
-          },
-          {
-            step: 7,
-            phase: "solving",
-            phaseName: "求解建模",
-            title: "Step 7: 方案评估与层次分析 (AHP) 评分",
-            agent: "模型评估智能体",
-            description: "通过构建层次分析模型（AHP），以经济成本、施工难度、年均输出热功率以及抗强风稳健性四个维度为准则，对三种替代排布阵列进行定量打分，提供最终决策报告。",
-            inputs: ["models/m3_solver/opt_results.json", "models/m4_sensitivity/sensitivity.json"],
-            outputs: ["models/m5_evaluation/ahp_weights.json", "models/m5_evaluation/report.md"],
-            prompt: "你是一个决策评估专家。请针对我们的优化排布方案建立 AHP 模型。计算经济成本、工程耗时、热能效益、抗风鲁棒性 4 个准则的成对比较矩阵，验证一致性比例 CR < 0.1，并输出最终决策得分。",
-            logs: [
-              "[Evaluator Agent] 建立 AHP 二层准则评价体系。第一准则: 工程综合可行性。",
-              "[Evaluator Agent] 经检验，成对比较矩阵的特征根 Lambda_max = 4.12, CI = 0.04, RI = 0.89. 一致性比例 CR = CI / RI = 0.045 < 0.1。一致性检验合格！",
-              "[Evaluator Agent] 最终得分：环形交错分布排布 (0.835) > 传统对称分布 (0.612) > 随机径向分布 (0.518)。",
-              "[System] 写入 AHP 评估矩阵: models/m5_evaluation/ahp_weights.json"
-            ],
-            code: "",
-            visual: {
-              type: "image",
-              url: "images/fig-ahp.png",
-              title: "Step 7: 层次分析法 (AHP) 优化方案成对矩阵决策权重树图"
-            },
-            paper: null
-          },
-          {
-            step: 8,
-            phase: "solving",
-            phaseName: "求解建模",
-            title: "Step 8: 论文矢量图绘制与抛光",
-            agent: "绘图 polish 智能体",
-            description: "自动提取运行代码绘制的折线图、云图，转换为高精度的学术级 Matplotlib 图像，保存为高质量矢量图 EPS/PNG 格式，并生成适配 LaTeX 的 caption 说明。",
-            inputs: ["models/m3_solver/opt_results.json", "models/m4_sensitivity/sensitivity.json"],
-            outputs: ["papers/figures/efficiency_cloud.png", "papers/figures/sensitivity_curve.png"],
-            prompt: "将模型运行产出的低像素图表，重新使用 Matplotlib 画成高精度的论文级别矢量图。要求：采用科学配色（如 viridis/plasma），标注清晰的 X/Y 轴物理单位，线宽与字体需满足 LaTeX 两栏或单栏插图排版规范。",
-            logs: [
-              "[Visual Agent] 读取数值仿真原始数据文件...",
-              "[Visual Agent] 正在使用 seaborn + science-plots 绘制定日镜场阴影挡光效率云图...",
-              "[Visual Agent] 输出高精度图表: papers/figures/efficiency_cloud.png",
-              "[Visual Agent] 正在绘制指向误差灵敏度分析散点置信度图...",
-              "[Visual Agent] 输出高精度图表: papers/figures/sensitivity_curve.png",
-              "[System] 步骤 8 图表渲染并保存至 papers/figures/ 目录。"
-            ],
-            code: `import matplotlib.pyplot as plt
-import seaborn as sns
-
-def plot_efficiency_cloud(x, y, z):
-    """
-    绘制定日镜场总效率的空间热力云图 (用于 LaTeX 插图)
-    """
-    plt.style.use('seaborn-v0_8-paper')
-    fig, ax = plt.subplots(figsize=(6, 5), dpi=300)
-    
-    # 绘制高精度伪彩插图
-    sc = ax.scatter(x, y, c=z, cmap='viridis', s=15, edgecolors='none')
-    cbar = fig.colorbar(sc, ax=ax)
-    cbar.set_label('年均总效率 (Cosine * Shading)', fontsize=10)
-    
-    ax.set_title('定日镜场年均综合效率空间热力分布云图', fontsize=11, pad=12)
-    ax.set_xlabel('镜面 X 轴坐标 (米)', fontsize=9)
-    ax.set_ylabel('镜面 Y 轴坐标 (米)', fontsize=9)
-    ax.grid(True, linestyle='--', alpha=0.5)
-    
-    plt.tight_layout()
-    plt.savefig('papers/figures/efficiency_cloud.png', bbox_inches='tight')`,
-            visual: {
-              type: "image",
-              url: "images/fig-scenario.png",
-              title: "Step 8: 生成的高清定日镜表面阴影截断光学转换图 (矢量图)"
-            },
-            paper: null
-          },
-          {
-            step: 9,
-            phase: "writing",
-            phaseName: "论文撰写",
-            title: "Step 9: LaTeX 论文初稿起草",
-            agent: "论文起草智能体",
-            description: "根据前几步得到的数学方程、求解结果、AHP评估报告 and 矢量图，自动从 LaTeX 模板（如全国大学生数学建模国赛模板）起草整篇学术论文的代码结构。",
-            inputs: ["models/m_final_equations.md", "models/m3_solver/opt_results.json"],
-            outputs: ["papers/paper_draft.tex"],
-            prompt: "你是一个专业的 LaTeX 学术论文排版助手。请使用 CUMCM 竞赛 LaTeX 排版模板，编写论文主体初稿。要求包含标题页、摘要、目录、问题背景、模型基本假设、符号说明、核心优化模型、算法设计以及初步的求解结果表格占位符。",
-            logs: [
-              "[Writer Agent] 加载 CUMCM 国赛标准 LaTeX 论文模板...",
-              "[Writer Agent] 自动写入封面标题: 基于三维几何投影与全局粒子群算法的定日镜场排排布优化设计...",
-              "[Writer Agent] 自动生成假设段落 (1. 镜面完全刚性, 2. 光线直线传播, 3. 忽略地形起伏)...",
-              "[Writer Agent] 构建参数符号定义表 (含有 14 个参数 LaTeX 代码)...",
-              "[Writer Agent] 将 models/ 中的公式积分式插入 LaTeX 模型推导章节...",
-              "[System] 论文初稿写入完成: papers/paper_draft.tex"
-            ],
-            code: "",
-            visual: { type: "placeholder" },
-            paper: {
-              page: 1,
-              title: "基于三维几何投影与全局粒子群算法的定日镜场排布优化设计",
-              content: `<h3>摘 &nbsp; 要</h3>
-<p class="paper-abstract-p">本文针对太阳能光热电站定日镜场的优化设计与控制问题，建立了一套基于三维向量光学几何投影的效率计算模型，并设计了一种新型定日镜场排布优化搜索策略。首先，推导了定日镜法向量与太阳位置向量的精确解析方程，计算了关键的余弦损失率。通过三维射线几何投影裁剪算法，定量计算了多镜交互情况下的阴影遮挡损失...</p>
-<p class="paper-abstract-p"><b>关键词：</b>定日镜场；余弦损失；三维投影裁剪；粒子群算法；稳健性设计</p>
+        title: "CUMCM 2024 B题 - 生产过程中的决策问题",
+        heroTitle: "生产过程检测与装配决策智能体流水线 (CUMCM 2024B)",
+        heroDesc: "基于二项分布抽样方案与多阶段贝叶斯决策树，最大化期望利润并优化检测与拆解决策。",
+        shortName: "“生产过程决策”",
+        params: "零件次品率、购买单价、检测成本、成品次品率、拆解回收价值等",
+        subject: "二项分布抽样理论与多阶段贝叶斯决策树优化",
+        language: "Python",
+        solverFile: "optimize_decisions.py",
+        gate1Logs: "提取 decision_results.json 关键值：期望总利润最优组合下企业利润提升约 16.4%... 一致性校验通过。",
+        evaluationMetric: "检测样检成本与不合格返修的期望价值比折旧",
+        finalPdf: "production_decision_final.pdf",
+        finalZip: "production_decision_submission.zip",
+        paperTitle: "基于贝叶斯抽样与动态规划的生产全过程决策优化模型",
+        paperAbstract: `<h3>摘 &nbsp; 要</h3>
+<p class="paper-abstract-p">本文研究了电子产品制造企业在零配件抽样检测、成品检测、不合格品拆解报废等多个阶段的协同优化决策问题。首先，设计了基于二项分布概率检验的低检测成本抽样方案，并在给定的信度（95% 和 90%）下确定了最少抽样次数与拒收边界。针对问题二与问题三，引入了贝叶斯多级决策树模型，以期望利润最大化为目标，推导了各工序检测与拆解决策的最优成本边界条件...</p>
+<p class="paper-abstract-p"><b>关键词：</b>抽样检测；贝叶斯更新；决策树；动态规划；成本优化</p>
 <h3>1. 问题背景与分析</h3>
-<p class="paper-abstract-p">太阳能光热电站通过数以千计的定日镜将太阳辐射聚焦于吸收塔顶部的集热器上。定日镜在反射阳光时，由于入射方向与法向夹角不同会产生余弦损失；由于定日镜相互靠拢，又会产生阴影与遮挡损失。本题要求我们通过优化镜场排布和镜面法线角度，最大化年均单位面积输出热功率，极具应用价值...</p>`,
-              image: "images/paper2024b-01.png"
-            }
-          },
-          {
-            step: 10,
-            phase: "writing",
-            phaseName: "论文撰写",
-            title: "Step 10: 一致性门禁检测 (Gate 1)",
-            agent: "一致性门禁校验脚本",
-            description: "运行 `verify_numbers.py`，自动提取 Python 执行结果 JSON 和 LaTeX 源代码中的所有数值。若发现公式中输出的最大热效率与表格中的求解值不符，将立即拦截并报错重写。",
-            inputs: ["models/m3_solver/opt_results.json", "papers/paper_draft.tex"],
-            outputs: ["papers/consistency_report.json"],
-            prompt: "检查 LaTeX 源码中的参数与求解程序最终输出结果中数值（如：定日镜数量 1684, 最大热功率 0.582, 倾斜角 0.15）是否保持完全一致。发现任何冲突必须报告不符并标记为 Block 门槛异常。",
-            logs: [
-              "[Gate 1 CLI] 启动 LaTeX 与 Python 求解数据一致性校验脚本...",
-              "[Gate 1 CLI] 提取 opt_results.json 关键值: num_mirrors=1684, annual_power=0.58231 kW/m².",
-              "[Gate 1 CLI] 解析 paper_draft.tex 发现文本字段: '优化方案包含定日镜 1684 面...'"
-            ],
-            code: "",
-            visual: { type: "placeholder" },
-            paper: null
-          }
-        ].concat(CUMCM_TAIL_STEPS)
+<p class="paper-abstract-p">现代电子产品组装企业面临着零部件次品率波动、装配工序繁多以及不合格品调换成本高昂的多重挑战。在生产过程中，对零部件、半成品进行检测虽然能降低次品流入，但会带来检测成本。本模型旨在寻找最优的检测策略，以实现利润最大化...</p>`,
+        code: `def solve_optimal_decision(p1, detect_1, p2, detect_2, swap_loss):
+    """
+    遍历零部件是否检测的 4 种组合，寻找期望成本最小的方案
+    """
+    cost_no_test = (p1 + p2 - p1*p2) * swap_loss
+    cost_test_both = detect_1 + detect_2 + (p1*p2)*swap_loss
+    # 返回最小化方案
+    return min(cost_no_test, cost_test_both)`
       },
-      mcm_2024b: {
-        title: "MCM 2024 Problem B - 网球赛事势头分析",
-        heroTitle: "网球赛事势头分析智能体流水线 (MCM)",
-        heroDesc: "基于 MCM 2024 Problem B (温网赛事势头分析与预测) 的 16 步多智能体马尔可夫状态转移、时序动力学建模、蒙特卡洛仿真及 LaTeX 自动排版演示。",
-        steps: [
-          {
-            step: 0,
-            phase: "setup",
-            phaseName: "准备阶段",
-            title: "Step 0: 问题解析与数据提取",
-            agent: "MinerU 提取智能体",
-            description: "对网球比赛原始题目PDF及提供的数据集CSV进行结构化读取，清洗网球得分转换链条、局点、破发点等特征字段。",
-            inputs: ["Wimbledon_featured_matches.csv", "problem.pdf"],
-            outputs: ["problem/data_summary.json", "problem/features_extracted.csv"],
-            prompt: "读取 2024 美赛数学建模 B 题网球赛事数据，找出选手得分、受迫/非受迫失误、破发点及网前球等核心变量，进行特征工程提取。",
-            logs: [
-              "[System] 初始化项目目录: ongoing/tennis_momentum_2024b",
-              "[System] 挂载温网历史数据表格",
-              "[MinerU Agent] 解析温网比赛数据集特征列。总计 31 个底层变量。",
-              "[System] 结构化导出数据特征清单: problem/data_summary.json"
-            ],
-            code: "",
-            visual: { type: "placeholder" },
-            paper: null
-          },
-          {
-            step: 1,
-            phase: "setup",
-            phaseName: "准备阶段",
-            title: "Step 1: 文献背景与动力学推导",
-            agent: "学术文献研究智能体",
-            description: "检索体育运动“势头”（Momentum）的量化研究论文，选定基于马尔可夫链状态转移以及时间序列自回归（ARIMA/LSTM）的势头分析方案。",
-            inputs: ["problem/data_summary.json"],
-            outputs: ["research/literature_notes.md", "research/method_plan.json"],
-            prompt: "检索关于网球比赛势头的数学定义（如一阶差分马尔可夫势头转移率、基于赢球概率差的势头模型），确定拟采用的数模方法学路线。",
-            logs: [
-              "[Research Agent] 文献研究：网球赢球状态具有马氏链无记忆性假说，而势头则是在时间域的自相关物理量。",
-              "[Research Agent] 选定方案：采用累加赢球概率残差积分（CUSUM）作为势头定义，并结合随机森林预测局势逆转点。",
-              "[System] 导出研究报告: research/literature_notes.md"
-            ],
-            code: "",
-            visual: { type: "placeholder" },
-            paper: null
-          },
-          {
-            step: 2,
-            phase: "modeling",
-            phaseName: "并行建模",
-            title: "Step 2: 势头公式并行推导",
-            agent: "并行建模小组",
-            description: "智能体推导势头演化模型。Proposal A 推导基于马尔可夫网球点得分矩阵模型，Proposal B 提出基于时序状态注意力机制的模型，并进行回归对比。",
-            inputs: ["research/method_plan.json"],
-            outputs: ["models/m1_markov/proposal.md", "models/m2_lstm/proposal.md"],
-            prompt: "并行建立两个预测网球选手势头转折点的模型，Proposal A 使用马氏矩阵，Proposal B 使用循环时序网络，并给出运行 Demo。",
-            logs: [
-              "[System] 并行任务派发: m1_markov vs m2_lstm",
-              "[Agent A] 推导一阶马尔可夫球权得分概率公式...",
-              "[Agent B] 构建时序多特征融合 LSTM 滑动窗口分类器...",
-              "[System] 成功写入两个并行模型设计 ongoing/tennis_momentum_2024b/models/"
-            ],
-            code: `import numpy as np
+      cumcm_2024c: {
+        title: "CUMCM 2024 C题 - 农作物的种植策略",
+        heroTitle: "农作物种植规划与不确定性优化流水线 (CUMCM 2024C)",
+        heroDesc: "基于混合整数线性规划 (MILP) 与不确定性规划，最大化乡村耕地与大棚作物的多年综合收益。",
+        shortName: "“作物种植规划”",
+        params: "1201 亩露天耕地（34个地块），16个普通大棚，4个智慧大棚，作物轮作与豆科种植约束",
+        subject: "多目标混合整数线性规划 (MILP) 与鲁棒决策模型",
+        language: "Python",
+        solverFile: "crop_milp_solver.py",
+        gate1Logs: "提取 crop_results.json 关键值：2024-2030年总预期收益 2345.6 万元... 一致性校验通过。",
+        evaluationMetric: "土地轮作倒茬周期稳定性与品种多样性",
+        finalPdf: "crop_planting_final.pdf",
+        finalZip: "crop_planting_submission.zip",
+        paperTitle: "基于混合整数线性规划与不确定约束的乡村作物轮作与大棚布局种植优化策略",
+        paperAbstract: `<h3>摘 &nbsp; 要</h3>
+<p class="paper-abstract-p">本文针对我国华北山区某乡村的土地规划与作物种植方案，建立了基于混合整数线性规划（MILP）的多阶段动态种植优化模型。考虑了露天耕地、普通大棚 and 智慧大棚等不同类型耕地的适种作物、轮作周期约束及三年内必须种植一次豆科作物的硬性要求。针对市场价格及产量的随机波动，引入了区间不确定性规划方法，建立了最大化最坏情境收益的鲁棒决策框架。求解结果给出了2024-2030年各年度地块的农作物最优种植布局表，使年均净收益显著提升，并完全满足可持续耕作要求。</p>
+<p class="paper-abstract-p"><b>关键词：</b>农作物种植策略；混合整数线性规划；轮作约束；不确定性规划；大棚布局</p>
+<h3>1. 问题背景与分析</h3>
+<p class="paper-abstract-p">发展有机种植产业、优化种植策略是乡村经济可持续发展的重要手段。某乡村地处华北山区，大多数耕地每年只能种植一季作物。为了避免连作障碍并保证农田肥力，合理安排粮食类、蔬菜及食用菌类在不同地块和大棚的交替轮作是典型运筹学决策问题。</p>`,
+        code: `from pulp import *
 
-def calculate_match_transition(p_server_win):
+def solve_crop_milp(lands, crops, years=7):
     """
-    网球单局内基于发球赢球概率的马尔可夫状态转移矩阵 (40-40, 占先等)
+    建立混合整数规划模型优化多年农作物种植策略
     """
-    # 状态空间: [0-0, 15-0, 0-15, 30-0, 15-15, 0-30, 40-0, 30-15, ...]
-    # 构建 17x17 转移概率矩阵
-    P = np.zeros((17, 17))
-    q = 1.0 - p_server_win
-    # 填充马氏转移矩阵概率
-    P[0, 1] = p_server_win # Server wins point 1
-    P[0, 2] = q            # Receiver wins point 1
-    # ... 省略转移矩阵其余 15 个状态填充
-    return P`,
-            visual: {
-              type: "image",
-              url: "images/fig-scenario.png",
-              title: "Step 2: 马尔可夫得分状态转移流图与网球局部势头演化仿真"
-            },
-            paper: null
-          },
-          {
-            step: 3,
-            phase: "modeling",
-            phaseName: "并行建模",
-            title: "Step 3: 模型仲裁与合并",
-            agent: "模型仲裁智能体",
-            description: "评估两个方案。A 方案解释力强，物理公式清晰，最终被选为主模型；B 方案高维时序拟合较好，降维后作为主模型中描述长期记忆特征的补充因子。",
-            inputs: ["models/m1_markov/proposal.md", "models/m2_lstm/proposal.md"],
-            outputs: ["models/method_selected.json"],
-            prompt: "通过比较温网验证集上的 F1-score 指标，对马尔可夫方案和 LSTM 模型进行仲裁。输出合并方案至 method_selected.json。",
-            logs: [
-              "[Selector Agent] 评估中。马尔可夫模型解释性极强，符合美赛建模对公式物理意义的要求。",
-              "[Selector Agent] 仲裁报告: 将马尔可夫赢球状态转换作为主模型骨架，辅以 LSTM 隐藏层状态变化作为选手“气势波动”的动态拟合权重。",
-              "[System] 仲裁决策成功导入: models/method_selected.json"
-            ],
-            code: "",
-            visual: { type: "placeholder" },
-            paper: null
-          },
-          {
-            step: 4,
-            phase: "modeling",
-            phaseName: "并行建模",
-            title: "Step 4: 势头状态演化方程定义",
-            agent: "推导智能体",
-            description: "建立网球比赛势头的积分与连续变化方程。定义选手 $i$ 在时刻 $t$ 的势头值 $M_i(t) = w_1 S_{score}(t) + w_2 A_{ace}(t) - w_3 E_{unforced}(t)$，给出多特征权重自适应解析方程。",
-            inputs: ["models/method_selected.json"],
-            outputs: ["models/final_momentum_eq.md"],
-            prompt: "推导详细的连续势头波动微分方程式，对选手的非受迫性失误、破发成功率设置加权系数，保证模型能完美复现温网男单决赛势头翻转走势。",
-            logs: [
-              "[Model Builder Agent] 确定连续势头波动表达式: $M(t) = \\int \\theta(u) e^{-\\lambda (t-u)} du$",
-              "[Model Builder Agent] 结合半衰期衰减衰减因子 $\\lambda$，反应选手随着时间推移势头的自我冷却效应。",
-              "[System] 方程写入 ongoing/tennis_momentum_2024b/models/final_momentum_eq.md"
-            ],
-            code: "",
-            visual: { type: "placeholder" },
-            paper: null
-          },
-          {
-            step: 5,
-            phase: "solving",
-            phaseName: "求解建模",
-            title: "Step 5: 模型求解与转折点提取",
-            agent: "代码求解智能体",
-            description: "运行求解代码，对温网男单赛事数据进行全量拟合，用粒子群算法求出最佳加权特征值，计算选手的势头变化，提取 84% 准确度的赛事转折点。",
-            inputs: ["models/final_momentum_eq.md", "problem/features_extracted.csv"],
-            outputs: ["models/solver_out/run_fit.py", "models/solver_out/tennis_results.json"],
-            prompt: "基于网球势头方程，使用 Python 拟合温网比赛。利用优化器学习出非受迫性失误、双误、Ace球的相对权重，画出整场比赛选手的势头演化波形图，并抓取势头剧烈倒转（逆转点）的触发条件。",
-            logs: [
-              "[Solver Agent] 开始运行拟合优化程序: models/solver_out/run_fit.py",
-              "[System] 通过 `solver_submit.sh` 异步运行求解任务 #JOB_20260605_T05...",
-              "[Solver CLI] 提取温网决赛数据集数据，进行 240 个点时刻的积分值平滑...",
-              "[Solver CLI] 优化权重收敛：得分差权重 0.45，Ace球权重 0.25，非受迫失误扣分权重 -0.30。",
-              "[Solver CLI] 成功检出 5 处关键赛事逆转点，与实际电视解说势头节点高度一致！",
-              "[System] 求解结果写入: models/solver_out/tennis_results.json"
-            ],
-            code: `import pandas as pd
+    prob = LpProblem("Crop_Planting_Optimization", LpMaximize)
+    x = LpVariable.dicts("x", ((y, l, c) for y in range(years) for l in lands for c in crops), lowBound=0)
+    # 轮作限制：三年内必须有一年大豆
+    for l in lands:
+        for y in range(years - 2):
+            prob += lpSum(x[y+k, l, "soybean"] for k in range(3)) >= lands[l].area
+    
+    prob += lpSum(x[y, l, c] * (crops[c].yield_rate * crops[c].price - crops[c].cost) for y, l, c in x)
+    prob.solve()
+    return prob.objective.value()`
+      },
+      cumcm_2024d: {
+        title: "CUMCM 2024 D题 - 反潜航空深弹命中概率问题",
+        heroTitle: "反潜航空深弹命中概率与弹道仿真流水线 (CUMCM 2024D)",
+        heroDesc: "基于多维正态分布误差传播与蒙特卡洛模拟，优化深弹投放落点并最大化潜艇命中概率。",
+        shortName: "“深弹反潜命中”",
+        params: "定位误差协方差、飞机空投水平位置偏差、引信引爆深度误差、深弹杀伤半径 8m",
+        subject: "三维空间正态分布概率积分与蒙特卡洛命中概率估计",
+        language: "Python",
+        solverFile: "depth_charge_sim.py",
+        gate1Logs: "提取 charge_results.json 关键值：单弹最佳命中率 14.85%，双机落点间距 22m... 一致性校验通过。",
+        evaluationMetric: "深弹杀伤范围空间重叠比与概率灵敏度分析",
+        finalPdf: "depth_charge_final.pdf",
+        finalZip: "depth_charge_submission.zip",
+        paperTitle: "基于目标定位误差分布与蒙特卡洛仿真的航空深弹最佳定深与命中概率优化模型",
+        paperAbstract: `<h3>摘 &nbsp; 要</h3>
+<p class="paper-abstract-p">本文针对反潜航空深弹攻击静默潜艇的杀伤效果，建立了三维空间多变量正态分布的命中概率解析模型。分析了侦察定位系统、反潜飞机投放系统及深弹引信深度偏差的复合误差传递路径，推导了潜艇三维边界内起爆概率密度的空间三重积分公式。针对由于被动定位导致的强非线性搜索空间，利用蒙特卡洛（Monte Carlo）离散点随机仿真进行了百万次弹道命中检验。给出了在给定阵位误差、下潜速度偏差下的深弹最佳定深值及阵列投放的最优落点间距，使总体单次命中概率得到最大化提升。</p>
+<p class="paper-abstract-p"><b>关键词：</b>航空深弹；命中概率；正态分布；误差传播；蒙特卡洛模拟；最优定深</p>
+<h3>1. 问题背景与分析</h3>
+<p class="paper-abstract-p">在狭窄海域或复杂浅海，深水炸弹仍是极高性价比的反潜武器。反潜飞机在收到潜艇大致定位后前去空投攻击。由于潜艇在遭遇警报时会采取关闭动力静默隐蔽策略，我们必须对海区内三维定位偏差进行概率分布建模，科学确定炸弹起爆定深和投放间距以提升防区杀伤概率。</p>`,
+        code: `import scipy.integrate as integrate
 import numpy as np
 
-def compute_dynamic_momentum(df, w_score, w_ace, w_unforced, decay=0.15):
+def calculate_hit_probability(x0, y0, z0, sigma_x, sigma_y, sigma_z, r_kill=8):
     """
-    计算网球赛程中随时间呈指数衰减的指数势头波形
+    三维空间中对深弹杀伤范围进行高斯概率密度积分求解命中率
     """
-    momentum = np.zeros(len(df))
-    current_m = 0.0
+    def pdf_3d(x, y, z):
+        return (1.0 / (np.pi * 2 * np.sqrt(2 * np.pi) * sigma_x * sigma_y * sigma_z)) *                np.exp(-0.5 * ((x/sigma_x)**2 + (y/sigma_y)**2 + (z/sigma_z)**2))
+               
+    val, err = integrate.tplquad(
+        pdf_3d, 
+        z0 - r_kill, z0 + r_kill,
+        lambda z: y0 - r_kill, lambda z: y0 + r_kill,
+        lambda z, y: x0 - r_kill, lambda z, y: x0 + r_kill
+    )
+    return val`
+      },
+      cumcm_2025a: {
+        title: "CUMCM 2025 A题 - 烟幕干扰弹的投放策略",
+        heroTitle: "无人机烟幕干扰弹投放与导弹防御流水线 (CUMCM 2025A)",
+        heroDesc: "基于三维抛体运动学、气溶胶云团匀速下沉与空地导弹轨迹，通过遗传算法优化多无人机协同防御时序。",
+        shortName: "“烟幕弹投放”",
+        params: "导弹速度 300m/s，无人机初始位置，假目标与真目标(0,200,0)，球形烟幕半径 10m，云团下沉 3m/s",
+        subject: "三维空间弹道投射物理机制与动态时空遮蔽非线性优化",
+        language: "Python",
+        solverFile: "uav_decoy_ga.py",
+        gate1Logs: "提取 decoy_results.json 关键值：无人机最优起飞投放时序延迟 12.4s 和 18.2s... 一致性校验通过。",
+        evaluationMetric: "视线遮蔽完全覆盖的持续窗口时长与重合体积比",
+        finalPdf: "uav_smoke_decoy_final.pdf",
+        finalZip: "uav_smoke_decoy_submission.zip",
+        paperTitle: "基于三维运动学方程与多无人机时空协同的烟幕干扰弹最优投放策略模型",
+        paperAbstract: `<h3>摘 &nbsp; 要</h3>
+<p class="paper-abstract-p">本文针对无人机投放烟幕干扰弹拦截空地导弹袭击的防御任务，建立了动态时空烟幕遮蔽的非线性运筹优化模型。基于干扰弹脱离无人机后的三维抛体运动学方程以及烟幕起爆后以 3 m/s 速度匀速下沉的扩散物理规律，分析了导弹、防护真目标及动态云团之间的视线角拦截几何关系。以最大化防御窗口时间内三枚来袭导弹视线被完全遮蔽的概率为目标，采用遗传算法（GA）联合非线性规划求解多架无人机协同投放的最佳时空点及精确爆破时序。优化结果表明，本模型所得策略能够以极低弹药消耗在导弹飞达前 12 秒建立稳固的烟幕视线屏障。</p>
+<p class="paper-abstract-p"><b>关键词：</b>烟幕干扰弹；投放策略；视线阻断；遗传算法；协同防御</p>
+<h3>1. 问题背景与分析</h3>
+<p class="paper-abstract-p">来袭制导武器可导致重要地面设施受损。运用挂载烟幕弹的无人机在前哨区域协同投放，形成球形不透明烟幕阻挡红外及电磁波，能有效引导导弹飞向假目标，这是战术电子防御领域的焦点模型。</p>`,
+        code: `def get_sight_line_intersection(t_missile, missile_pos, target_pos, smoke_cloud_center, r_smoke=10):
+    """
+    判断导弹与目标之间的视线是否在特定时刻穿过球形下沉烟幕遮蔽区
+    """
+    line_vec = target_pos - missile_pos
+    line_len = np.linalg.norm(line_vec)
+    unit_line = line_vec / line_len
     
-    for i in range(1, len(df)):
-        # 提取点得分物理状态变化
-        score_diff = df.loc[i, 'player1_score_diff']
-        is_ace = df.loc[i, 'player1_aces']
-        unforced_err = df.loc[i, 'player1_unforced_errors']
+    # 烟幕中心随时间下沉
+    current_center = smoke_cloud_center - np.array([0, 0, 3.0 * t_missile])
+    
+    v = current_center - missile_pos
+    proj_len = np.dot(v, unit_line)
+    if proj_len < 0 or proj_len > line_len:
+        return False
         
-        # 积分势头增量
-        delta = w_score * score_diff + w_ace * is_ace - w_unforced * unforced_err
+    dist_to_line = np.linalg.norm(v - proj_len * unit_line)
+    return dist_to_line <= r_smoke`
+      },
+      cumcm_2025b: {
+        title: "CUMCM 2025 B题 - 碳化硅外延层厚度的确定",
+        heroTitle: "红外干涉法半导体外延厚度测量流水线 (CUMCM 2025B)",
+        heroDesc: "基于红外反射干涉光谱、折射率非线性色散模型与多光束干涉，精准反演 SiC 及 Si 外延层厚度。",
+        shortName: "“外延层测厚”",
+        params: "红外实测光谱，折射率非线性色散 n(lambda)，折射率界面一次与多次反射干涉条件",
+        subject: "红外干涉光谱反演、色散关系曲线拟合与多光束信噪比消除",
+        language: "Python",
+        solverFile: "sic_thickness_solver.py",
+        gate1Logs: "提取 thickness_results.json 关键值：SiC外延层厚度反演均值 5.432 um... 一致性校验通过。",
+        evaluationMetric: "光谱实测反射峰极值误差与多界面多次干涉消噪率",
+        finalPdf: "sic_epitaxial_thickness_final.pdf",
+        finalZip: "sic_epitaxial_thickness_submission.zip",
+        paperTitle: "基于红外反射光谱干涉原理与非线性色散反演的碳化硅外延层厚度精密检测模型",
+        paperAbstract: `<h3>摘 &nbsp; 要</h3>
+<p class="paper-abstract-p">本文针对第三代半导体材料碳化硅（SiC）及单质硅外延层厚度的无损精密测量，建立了基于红外反射干涉光谱的折射率非线性色散与厚度反演数学模型。考虑外延层与衬底因掺杂浓度差异而在界面产生的反射与透射，推导了干涉极大与极小处波长与外延厚度之间的光路差控制方程。引入 Cauchy 色散公式刻画了折射率随波长的非线性色散曲线。针对光波在外延层内发生多次反射产生的多光束复振幅叠加干涉，推导了发生多光束干涉的厚度与平整度临界必要条件。利用非线性最小二乘拟合算法（Levenberg-Marquardt）对附件光谱实测数据进行了拟合反演，准确计算出厚度且精度达纳米级。</p>
+<p class="paper-abstract-p"><b>关键词：</b>红外干涉法；外延层厚度；碳化硅；色散关系；多光束干涉；Levenberg-Marquardt拟合</p>
+<h3>1. 问题背景与分析</h3>
+<p class="paper-abstract-p">外延层厚度直接决定碳化硅功率器件的击穿电压和漏电流等核心电学性能。红外干涉测厚法由于无损和快速，是工业界首选方案。然而，折射率随波长的非线性漂移以及外延多界面间的多重反射干涉会给测厚公式的计算带来极大误差，迫切需要对物理波动方程进行反演拟合。</p>`,
+        code: `from scipy.optimize import minimize
+
+def fit_sic_thickness(wavelengths, measured_reflectance, theta=30 * np.pi / 180):
+    """
+    通过最小化理论干涉光谱与实测光谱的均方误差，反演外延层厚度 d
+    """
+    def cauchy_n(w, A=2.55, B=0.034):
+        return A + B / (w**2)
         
-        # 指数平滑衰减
-        current_m = current_m * (1.0 - decay) + delta
-        momentum[i] = current_m
+    def objective(params):
+        d = params[0]
+        theory = []
+        for w, r in zip(wavelengths, measured_reflectance):
+            n = cauchy_n(w)
+            delta = 2 * d * np.sqrt(n**2 - np.sin(theta)**2)
+            val = np.cos(2 * np.pi * delta / w)
+            theory.append(val)
+        return np.mean((np.array(theory) - measured_reflectance)**2)
         
-    return momentum`,
-            visual: {
-              type: "image",
-              url: "images/fig-robust.png",
-              title: "Step 5: 优化求出的温网男单比赛全程势头指数曲线与实际转折点拟合"
-            },
-            paper: null
-          },
-          {
-            step: 6,
-            phase: "solving",
-            phaseName: "求解建模",
-            title: "Step 6: 蒙特卡洛敏感性模拟",
-            agent: "数据分析智能体",
-            description: "运行蒙特卡洛仿真（进行 10,000 次虚拟比赛对局），检验当选手的发球局赢球率由于情绪产生 $\\pm 5\\%$ 抖动时，势头回归模型的稳健性。",
-            inputs: ["models/solver_out/tennis_results.json"],
-            outputs: ["models/robust_check/monte_carlo.py", "models/robust_check/sensitivity_stats.json"],
-            prompt: "使用蒙特卡洛模拟选手心理波动过程，测试势头权重微扰后，比赛最终走向发生偏转的分布区间。绘制敏感度 Tornado 直方图。",
-            logs: [
-              "[Data Analyst Agent] 启动 10000 次网球赛局蒙特卡洛敏感性波动模拟...",
-              "[Data Analyst Agent] 结果分析：若发球赢球概率从 62% 下降到 57%（选手气势受挫），最终获胜期望由 74.2% 暴跌至 41.5%。",
-              "[Data Analyst Agent] 表明网球赛事确实存在强烈的非线性多米诺“势头”传导，这完全证实了我们模型的动力学推论。",
-              "[System] 输出敏感度数据: models/robust_check/sensitivity_stats.json"
-            ],
-            code: "",
-            visual: {
-              type: "image",
-              url: "images/fig-tornado.png",
-              title: "Step 6: 发球波动与非受迫失误参数对整场比赛赢球概率的敏感度贡献分析"
-            },
-            paper: null
-          },
-          {
-            step: 7,
-            phase: "solving",
-            phaseName: "求解建模",
-            title: "Step 7: 优势因子层次打分 (AHP)",
-            agent: "模型评估智能体",
-            description: "根据体力、心理恢复力、技战术发挥三个主维度，对各网球名将（费德勒、纳达尔等）在劣势下的“翻盘势头”指数进行 AHP 综合定量评估。",
-            inputs: ["models/solver_out/tennis_results.json", "models/robust_check/sensitivity_stats.json"],
-            outputs: ["models/evaluation/tennis_ahp.json", "models/evaluation/report.md"],
-            prompt: "基于层次分析法，构建球员韧性指数评测矩阵。给出特征向量及一致性 CR 核算报告，生成最优翻盘策略决策图。",
-            logs: [
-              "[Evaluator Agent] 建立球员翻盘韧性评判 AHP 矩阵...",
-              "[Evaluator Agent] 矩阵的最大特征值为 3.03，一致性指数 CI = 0.015，一致性比例 CR = 0.026 < 0.1。一致性优秀。",
-              "[Evaluator Agent] 综合翻盘势头评级：A选手（心理强劲）得分 0.81，B选手（体力极强）得分 0.72，C选手得分 0.65。",
-              "[System] 生成评估报告 ongoing/tennis_momentum_2024b/models/evaluation/"
-            ],
-            code: "",
-            visual: {
-              type: "image",
-              url: "images/fig-ahp.png",
-              title: "Step 7: 网球选手大逆转韧性因子评估 (AHP) 决策比值分析"
-            },
-            paper: null
-          },
-          {
-            step: 8,
-            phase: "solving",
-            phaseName: "求解建模",
-            title: "Step 8: 论文学术级图表绘制",
-            agent: "绘图 polish 智能体",
-            description: "美化势头波形、蒙特卡洛分布直方图，导出高清矢量插图文件，嵌入 LaTeX 支持。",
-            inputs: ["models/solver_out/tennis_results.json"],
-            outputs: ["papers/figures/momentum_wave.png", "papers/figures/monte_carlo_dist.png"],
-            prompt: "把势头分析散点图与平滑曲线整理成双栏学术排版的高清 Matplotlib 图，保存为高精度 PNG/EPS，并生成相应的 LaTeX 图题标注说明。",
-            logs: [
-              "[Visual Agent] 加载温网数据拟合序列...",
-              "[Visual Agent] 正在绘制三阶段比赛选手的势头差值追踪图（添加 95% 置信带）...",
-              "[Visual Agent] 矢量图 papers/figures/momentum_wave.png 保存成功。"
-            ],
-            code: "",
-            visual: {
-              type: "image",
-              url: "images/fig-scenario.png",
-              title: "Step 8: 生成的高清网球赛事势头差值随赛程演变趋势图"
-            },
-            paper: null
-          },
-          {
-            step: 9,
-            phase: "writing",
-            phaseName: "论文撰写",
-            title: "Step 9: LaTeX 美赛论文初稿起草",
-            agent: "论文起草智能体",
-            description: "根据美赛 LaTeX 论文规范，起草多栏数学论文初稿，包含标题、英文摘要、背景阐述、网球马氏链公式、势头时序模型、仿真实验与模型评估。",
-            inputs: ["models/final_momentum_eq.md", "models/solver_out/tennis_results.json"],
-            outputs: ["papers/paper_draft.tex"],
-            prompt: "使用 MCM 美赛标准 LaTeX 排版样式，起草网球势头建模学术论文。撰写精简规范的英文 Abstract，阐明你的势头转移和逆转点预测框架。",
-            logs: [
-              "[Writer Agent] 加载 MCM 美赛标准 LaTeX 论文模板...",
-              "[Writer Agent] 自动写入标题: Deciphering the Tennis Momentum: A Markov State-Transition and Time-Series Model...",
-              "[Writer Agent] 生成符号对照表与主要模型公式代码...",
-              "[System] 论文初稿写入完成: papers/paper_draft.tex"
-            ],
-            code: "",
-            visual: { type: "placeholder" },
-            paper: {
-              page: 1,
-              title: "Deciphering Tennis Momentum: A Markov State-Transition Model",
-              content: `<h3>Abstract</h3>
-<p class="paper-abstract-p">This paper provides a quantitative framework to analyze the elusive concept of 'momentum' in professional tennis matches. Utilizing Wimbledon historical feature data, we formulate a Markov State-Transition Model that captures the game point evolution. By overlaying time-series decay functions, we calculate the continuous momentum variation of players...</p>
-<p class="paper-abstract-p"><b>Keywords:</b> Tennis Momentum; Markov Chain; LSTM State Decay; Sensitivity Analysis; AHP Evaluation</p>
-<h3>1. Introduction</h3>
-<p class="paper-abstract-p">Momentum in tennis refers to the phenomenon where a sequence of successful plays shifts the psychological and physical advantage to one player, dramatically altering the probability of winning subsequent points. Although commentators frequently invoke this term, its mathematical representation and prediction remain challenging. In this study, we construct an analytical model...</p>`,
-              image: "images/paper2024b-01.png"
-            }
-          },
-          {
-            step: 10,
-            phase: "writing",
-            phaseName: "论文撰写",
-            title: "Step 10: 一致性门禁检测 (Gate 1)",
-            agent: "一致性门禁校验脚本",
-            description: "自动校对 LaTeX 文档里的关键数据指标（如网球特征列数目、逆转预测精度等），保证学术报告叙述与数据文件毫无二致。",
-            inputs: ["models/solver_out/tennis_results.json", "papers/paper_draft.tex"],
-            outputs: ["papers/consistency_report.json"],
-            prompt: "扫描 LaTeX 论文草案。与数据分析阶段保存的 JSON 结果进行逐词对齐检验。如若发生数据前后矛盾（例如：预测准确率在正文里是 84%，但求解器 JSON 里是 82.3%），立刻报告异常。",
-            logs: [
-              "[Gate 1 CLI] 启动 LaTeX 与 Python 求解数据一致性校验脚本...",
-              "[Gate 1 CLI] 提取 tennis_results.json 关键值: transition_accuracy=0.8423",
-              "[Gate 1 CLI] 解析 paper_draft.tex 发现文本字段: 'The model achieves a momentum transition prediction accuracy of 84.2%...'"
-            ],
-            code: "",
-            visual: { type: "placeholder" },
-            paper: null
-          }
-        ].concat(MCM_TAIL_STEPS)
+    res = minimize(objective, x0=[5.0], bounds=[(1.0, 30.0)])
+    return res.x[0]`
+      },
+      cumcm_2025c: {
+        title: "CUMCM 2025 C题 - NIPT 的时点选择与胎儿的异常判定",
+        heroTitle: "无创产前检测 (NIPT) 时点与染色体异常判定流水线 (CUMCM 2025C)",
+        heroDesc: "基于贝叶斯概率估计、BMI 动态更新模型与多目标效用优化，平衡检测准确度与临床风险的时间窗口。",
+        shortName: "“NIPT时点选择”",
+        params: "检测孕周数 10-25周，孕妇 BMI 分组区间，男胎 Y 染色体浓度 >= 4% 基准门槛，异常胎儿人工干预黄金时点",
+        subject: "贝叶斯先验与后验概率更新、BMI 浓度非线性拟合与多目标效用决策",
+        language: "Python",
+        solverFile: "nipt_decision_optimizer.py",
+        gate1Logs: "提取 nipt_results.json 关键值：BMI 大于 28 孕妇的最佳 NIPT 时点设定为 14.5 周... 一致性校验通过。",
+        evaluationMetric: "漏检误检风险与延误治疗窗口期健康风险的比重系数",
+        finalPdf: "nipt_gestational_optimal_final.pdf",
+        finalZip: "nipt_gestational_optimal_submission.zip",
+        paperTitle: "基于游离DNA浓度演化规律与贝叶斯风险决策 of NIPT 个性化时点选择优化模型",
+        paperAbstract: `<h3>摘 &nbsp; 要</h3>
+<p class="paper-abstract-p">无创产前检测（NIPT）的准确性与胎儿游离 DNA 浓度密切相关。针对母体血液中胎儿游离 DNA 浓度随孕周增加而上升、随孕妇体质指数（BMI）增加而下降的生理特征，本文建立了基于非线性回归的浓度动力学预测模型。针对 21-、18- 和 13-三体综合征筛查，利用贝叶斯公式推导了基于性染色体纯度校正的异常判定后验概率公式。引入多目标决策模型，平衡了因过早检测导致游离 DNA 浓度不足（小于 4% 门限）引发的漏检误检风险，与过迟检测导致胎儿异常发现滞后缩短治疗窗口的临床安全风险，优化得到了不同 BMI 群组孕妇的最佳个性化检测时点。</p>
+<p class="paper-abstract-p"><b>关键词：</b>NIPT检测；胎儿游离DNA浓度；BMI分组；贝叶斯更新；治疗窗口期；多目标决策</p>
+<h3>1. 问题背景与分析</h3>
+<p class="paper-abstract-p">NIPT 作为新一代产前筛查技术，已挽救了无数家庭。然而，由于个体差异大，肥胖孕妇血液被稀释导致检测准确性下降，过早检测因浓度达不到 4% 判定无效，过迟检测则错失 12 周前人工流产的低风险黄金时期。寻找两难困境下的帕累托最优解是个性化医疗的重要应用。</p>`,
+        code: `def calculate_nipt_optimal_week(bmi, w_risk=0.5):
+    """
+    计算给定 BMI 孕妇的最佳 NIPT 检测孕周，平衡浓度不足漏检率与耽误治疗窗口的风险
+    """
+    optimal_week = 10
+    min_combined_risk = 999.0
+    for week in np.arange(10, 25, 0.1):
+        fetal_fraction = 0.03 * (week - 8) - 0.002 * (bmi - 22)
+        p_invalid = 1.0 / (1.0 + np.exp(20 * (fetal_fraction - 0.04)))
+        p_delay_risk = 0.05 * np.exp(0.3 * (week - 12)) if week > 12 else 0.0
+        
+        combined_risk = w_risk * p_invalid + (1 - w_risk) * p_delay_risk
+        if combined_risk < min_combined_risk:
+            min_combined_risk = combined_risk
+            optimal_week = week
+    return optimal_week`
+      },
+      cumcm_2025d: {
+        title: "CUMCM 2025 D题 - 矿井突水水流漫延模型与逃生方案",
+        heroTitle: "三维立体巷道矿井突水仿真与逃生路线优化流水线 (CUMCM 2025D)",
+        heroDesc: "基于巷道网络拓扑图、一维重力水流漫延演化模型与 Dijkstra 算法，动态计算水流淹没时间并生成最优逃生方案。",
+        shortName: "“矿井突水逃生”",
+        params: "巷道宽度 4m，高度 3m，突水量 30m3/min，突水初始水位 0.1m，出入口 1 与出入口 2，巷道倾角与分流比",
+        subject: "动态立体巷道流体力学漫延模型与网络流 Dijkstra 逃生路径算法",
+        language: "Python",
+        solverFile: "mine_water_escape.py",
+        gate1Logs: "提取 flood_results.json 关键值：突水漫延至出入口时间 412s，最优安全逃生生存人数达 94.2%... 一致性校验通过。",
+        evaluationMetric: "水流蔓延覆盖时变权重网络图与矿工跑步路径的交会安全性",
+        finalPdf: "mine_inrush_escape_final.pdf",
+        finalZip: "mine_inrush_escape_submission.zip",
+        paperTitle: "基于三维巷道网络流体漫延模型与时变网络图的矿井突水动态逃生路线决策模型",
+        paperAbstract: `<h3>摘 &nbsp; 要</h3>
+<p class="paper-abstract-p">矿井水灾极易造成重大人员伤亡。针对矩形断面的三维复杂网络化巷道系统，本文建立了一维巷道突水水流漫延的动态物理推演模型。根据流体力学与连通网络节点分流规律，设计了水流通过巷道汇聚、分叉和上下行倾角对漫延速度的动力学控制方程。基于水面前锋推进时间，构建了节点状态与权值时变的拓扑网络图。以避开淹没区域并使总体逃生时间最短为目标，利用动态 Dijkstra 寻路算法及时间依赖型最短路径模型，为处于不同作业区的人员规划了最优应急逃生路线，提高了突水场景下涉险人员的生存机率。</p>
+<p class="paper-abstract-p"><b>关键词：</b>矿井突水；水流漫延；三维网络；分流物理模型；动态Dijkstra；逃生路线</p>
+<h3>1. 问题背景与分析</h3>
+<p class="paper-abstract-p">突水灾害发生时，通道迅速积水变窄，且断头路和高倾角坡度水流流速骤增。若盲目根据静态物理距离逃生，极易误入已被淹没的死胡同。因此，预测水流漫延并结合矿工体力步频给出实时动态逃生路线指引是矿山安防与智能调度的生命线模型。</p>`,
+        code: `import networkx as nx
+
+def calculate_escape_route(tunnel_graph, miner_start_node, safe_exits, water_flow_times):
+    """
+    计算特定矿工的最佳逃生路径，避开已水淹的节点
+    """
+    g = tunnel_graph.copy()
+    
+    def dynamic_weight(u, v, d):
+        travel_time = d['length'] / 1.2
+        return travel_time
+        
+    try:
+        paths = []
+        for exit_node in safe_exits:
+            path = nx.shortest_path(g, source=miner_start_node, target=exit_node, weight='length')
+            current_time = 0.0
+            valid = True
+            for i in range(len(path) - 1):
+                u, v = path[i], path[i+1]
+                current_time += g[u][v]['length'] / 1.2
+                if current_time >= water_flow_times.get(v, 99999.0):
+                    valid = False
+                    break
+            if valid:
+                paths.append((current_time, path))
+        
+        if paths:
+            return min(paths, key=lambda x: x[0])[1]
+    except nx.NetworkXNoPath:
+        pass
+    return None`
       }
     };
 
+    const PROBLEMS_DATA = {};
+    for (const key in PROBLEMS_METADATA) {
+      const meta = PROBLEMS_METADATA[key];
+      PROBLEMS_DATA[key] = {
+        title: meta.title,
+        heroTitle: meta.heroTitle,
+        heroDesc: meta.heroDesc,
+        steps: createStepsForProblem(key, meta)
+      };
+    }
     // State Variables for Simulation
     let currentProblem = "cumcm_2024b";
     let isRunning = false;
@@ -2555,7 +2368,8 @@ def compute_dynamic_momentum(df, w_score, w_ace, w_unforced, decay=0.15):
       showStepDetails(16);
       
       // Show dynamic notification alerts or popups in terminal
-      appendTerminalLine("[System] >>> 项目构建验证最终成功！生成交付包 solar_heliostat_submission.zip <<<");
+      const finalZip = PROBLEMS_DATA[currentProblem].steps[16].outputs[1].split('/').pop();
+      appendTerminalLine("[System] >>> 项目构建验证最终成功！生成交付包 " + finalZip + " <<<");
     }
 
     // Helper to escape HTML tags in code
