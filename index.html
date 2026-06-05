@@ -954,14 +954,8 @@
         <div class="select-group">
           <span class="select-label">选择建模题目 / Dataset</span>
           <select class="select-control" id="problem-select">
-            <option value="cumcm_2024a">CUMCM 2024 A题 - “板凳龙”闹元宵</option>
-            <option value="cumcm_2024b">CUMCM 2024 B题 - 生产过程中的决策问题</option>
-            <option value="cumcm_2024c">CUMCM 2024 C题 - 农作物的种植策略</option>
-            <option value="cumcm_2024d">CUMCM 2024 D题 - 反潜航空深弹命中概率问题</option>
-            <option value="cumcm_2025a">CUMCM 2025 A题 - 烟幕干扰弹的投放策略</option>
-            <option value="cumcm_2025b">CUMCM 2025 B题 - 碳化硅外延层厚度的确定</option>
-            <option value="cumcm_2025c">CUMCM 2025 C题 - NIPT 的时点选择与胎儿的异常判定</option>
-            <option value="cumcm_2025d">CUMCM 2025 D题 - 矿井突水水流漫延模型与逃生方案</option>
+            <option value="cumcm2024a">CUMCM 2024 A题 - “板凳龙”闹元宵</option>
+            <option value="test_cumcm2024b">CUMCM 2024 B题 - 生产过程中的决策问题</option>
           </select>
         </div>
         
@@ -1213,7 +1207,7 @@
         code: meta.code,
         visual: {
           type: "image",
-          url: "images/fig-scenario.png",
+          url: meta.figStep2,
           title: `Step 2: ${meta.shortName} 方案的几何空间或网格剖分与初步仿真结果`
         },
         paper: null
@@ -1284,7 +1278,7 @@
         code: meta.code,
         visual: {
           type: "image",
-          url: "images/fig-robust.png",
+          url: meta.figStep5,
           title: `Step 5: ${meta.shortName} 优化求解器的迭代收敛过程及稳态解分布`
         },
         paper: null
@@ -1310,7 +1304,7 @@
         code: "",
         visual: {
           type: "image",
-          url: "images/fig-tornado.png",
+          url: meta.figStep6,
           title: `Step 6: 关键敏感性因子对 ${meta.shortName} 优化目标影响的 Tornado 图`
         },
         paper: null
@@ -1335,7 +1329,7 @@
         code: "",
         visual: {
           type: "image",
-          url: "images/fig-ahp.png",
+          url: meta.figStep7,
           title: `Step 7: ${meta.shortName} 多目标决策的 AHP 指标权重树状分布与打分比对`
         },
         paper: null
@@ -1360,7 +1354,7 @@
         code: "",
         visual: {
           type: "image",
-          url: "images/fig-scenario.png",
+          url: meta.figStep8,
           title: `Step 8: 美化后的 ${meta.shortName} 二维状态转换与空间约束仿真示意图`
         },
         paper: null
@@ -1389,7 +1383,7 @@
           page: 1,
           title: meta.paperTitle,
           content: meta.paperAbstract,
-          image: "images/paper2024b-01.png"
+          image: meta.paperThumb
         }
       });
 
@@ -1542,14 +1536,14 @@
         code: "",
         visual: {
           type: "image",
-          url: "images/paper2024b-01.png",
+          url: meta.paperThumb,
           title: `Step 16: 编译生成的《${meta.paperTitle}》一等奖候选论文预览`
         },
         paper: {
           page: 1,
           title: meta.paperTitle,
           content: meta.paperAbstract,
-          image: "images/paper2024b-01.png"
+          image: meta.paperThumb
         }
       });
 
@@ -1557,309 +1551,91 @@
     }
 
     const PROBLEMS_METADATA = {
-      cumcm_2024a: {
+      cumcm2024a: {
         title: "CUMCM 2024 A题 - “板凳龙”闹元宵",
         heroTitle: "等距螺线板凳龙多智能体流水线 (CUMCM 2024A)",
-        heroDesc: "基于等距螺线运动学模型与多刚体铰接约束，实现舞龙队位置、速度递推求解及 S 弯调头曲率优化。",
+        heroDesc: "基于等距螺线运动学模型与分离轴定理 (SAT) 实体碰撞检测，实现 223 节舞龙队位置、速度、极角精确寻优及 S 弯相切调头曲率设计。",
         shortName: "“板凳龙”",
-        params: "龙身共 223 节，龙头长 3.41m，龙身与龙尾长 2.20m，螺距 55cm，龙头行进速度 1.0m/s",
-        subject: "阿基米德螺线极坐标运动学与刚体摆动干涉约束",
+        params: "龙身共 223 节，龙头长 3.41m，龙身与龙尾长 2.20m，板宽 0.30m，螺距 55cm，龙头行进速度 1.0m/s",
+        subject: "阿基米德螺线极坐标解析追随与刚体矩形 SAT 碰撞定位",
         language: "Python",
-        solverFile: "solve_dragon.py",
-        gate1Logs: "提取 opt_results.json 关键值：碰撞时间 t = 412.5s，碰撞位置距中心 22.3m... 一致性校验通过。",
-        evaluationMetric: "螺线盘入极值直径与 S 弯调头空间（9m限制）",
-        finalPdf: "bench_dragon_final.pdf",
-        finalZip: "bench_dragon_submission.zip",
-        paperTitle: "基于连杆约束与非线性规划的“板凳龙”运动学仿真与路径优化",
+        solverFile: "03_solve.py",
+        gate1Logs: "提取 values.json 关键值：首碰时刻 t* = 412.4738s，首碰发生于第 1 节与第 9 节... 一致性校验通过。",
+        evaluationMetric: "龙队 S 弯相切圆极值曲率与 9m 直径调头空间 SAT 零碰撞最近距离裕度 g(t)",
+        finalPdf: "test_cumcm2024a_paper.pdf",
+        finalZip: "test_cumcm2024a_submission.zip",
+        figStep2: "images/solve_p1_inspiral_snapshots.png",
+        figStep5: "images/solve_p2_terminal_collision.png",
+        figStep6: "images/sensitivity_oat_p5_timestep.png",
+        figStep7: "images/sensitivity_scenario_p4_rmin_method_compare.png",
+        figStep8: "images/solve_p4_scurve_geometry.png",
+        paperThumb: "images/paper2024a-01.png",
+        paperTitle: "基于螺线解析积分与分离轴 SAT 碰撞检测的“板凳龙”运动学仿真与调头优化模型",
         paperAbstract: `<h3>摘 &nbsp; 要</h3>
-<p class="paper-abstract-p">本文针对“板凳龙”元宵舞龙活动中的路径规划与避障问题，建立了一套基于阿基米德螺线与多刚体连杆铰接约束的几何运动学模型。通过龙头速度 1m/s 与螺距 55cm 的约束条件，采用刚性圆弧交线法推导了各节板凳前把手与后把手在三维/二维空间中的运动学状态微分方程。仿真结果表明，随着龙队不断盘入，相邻板凳在第 412.5 秒时发生碰撞干涉，位置距离螺线中心 22.3 米。随后，对 S 弯调头曲线建立了切线相切约束条件，求解出最小调头圆弧半径...</p>
-<p class="paper-abstract-p"><b>关键词：</b>板凳龙；阿基米德螺线；刚体连杆；非线性规划；运动学仿真</p>
+<p class="paper-abstract-p">本文研究由 223 节板凳铰接而成的“板凳龙”盘入、碰撞、调头与限速问题。首先，以阿基米德螺线运动学为基础，利用极角微积分和 Brent 数值寻根法构建了链式定弦长递推模型，实现 0-300 s 内全队位置、速度的极精细求解（最大杆长残差小于 3.33e-12 m）。为确定碰撞临界点，将板凳抽象为刚性有向矩形，提出轴对齐包围盒（AABB）预筛与分离轴定理（SAT）相结合的连续时间最近距离裕度函数 g(t) 算法，求得无碰撞盘入终止时刻 t* = 412.4738 s，首碰发生于第 1 节与第 9 节。针对调头优化，推导了两段非退化相切圆弧构成 S 弯曲线的几何约束，求得满足 9m 圆内无碰行进的最短调头轨迹长 13.6212 m（圆半径 R1 = 3.005 m, R2 = 1.503 m）。最后，求解了全队速度不超限下龙头最大安全速度 v0* = 1.2587 m/s。</p>
+<p class="paper-abstract-p"><b>关键词：</b>板凳龙；阿基米德螺线；定弦长递推；分离轴定理（SAT）；S弯调头；几何优化</p>
 <h3>1. 问题背景与分析</h3>
-<p class="paper-abstract-p">“板凳龙”闹元宵是浙闽地区重要的民俗活动。舞龙队通过将数百节板凳连接成链条。为了提升观赏性，需要在不发生碰撞的前提下盘入并顺利盘出。这就要求我们求解各个时刻每节车厢的位置、速度，并确定碰撞临界状态...</p>`,
-        code: `import numpy as np
-
-def solve_dragon_positions(t_max=300, p=0.55):
-    """
-    自龙头向龙尾迭代求解各节板凳极角
-    """
-    positions = []
-    for t in range(t_max + 1):
-        # 龙头沿螺线以 1m/s 前行
-        head_theta = get_head_theta_at_time(t)
-        coords = [spiral_pos(head_theta, p)]
-        # 后续板凳满足铰接距离约束
-        for i in range(222):
-            next_theta = solve_next_theta(coords[-1], d=2.20, p=p)
-            coords.append(spiral_pos(next_theta, p))
-        positions.append(coords)
-    return positions`
+<p class="paper-abstract-p">“板凳龙”闹元宵是闽逝地区著名的民俗活动。舞龙队行进时，车厢板凳不可视作质点，且随着盘入螺线直径越来越小，龙身极易发生干涉碰撞。这就要求我们求解各个时刻每节板凳的位置和速度，精确确定首碰边界，并优化设计 S 型避障调头曲线。</p>`,
+        code: `def solve_dragon_positions(t, p=0.55):
+    # m1_spiral 核心求解代码：阿基米德螺线极角递推与 Brent 求解
+    import numpy as np
+    from scipy.optimize import brentq
+    
+    # 龙头极角极径
+    r0 = (16 * p) - (p * t / (2 * np.pi))
+    theta0 = solve_head_theta(t, p)
+    coords = [spiral_pos(theta0, p)]
+    
+    # 递推后继板凳极角 (定弦长约束 ||P_i - P_{i+1}||^2 = d^2)
+    for i in range(222):
+        d_len = 3.41 if i == 0 else 2.20
+        next_theta = brentq(lambda th: chord_dist_sq(coords[-1], th, p) - d_len**2, 
+                            theta0 - 2*np.pi, theta0)
+        coords.append(spiral_pos(next_theta, p))
+    return coords`
       },
-      cumcm_2024b: {
+      test_cumcm2024b: {
         title: "CUMCM 2024 B题 - 生产过程中的决策问题",
         heroTitle: "生产过程检测与装配决策智能体流水线 (CUMCM 2024B)",
-        heroDesc: "基于二项分布抽样方案与多阶段贝叶斯决策树，最大化期望利润并优化检测与拆解决策。",
+        heroDesc: "基于 Wald 序贯概率比检验 (SPRT)、吸收马尔可夫链与混合整数线性规划 (MILP)，最大化装配全流程期望利润并进行 Gamma 鲁棒优化。",
         shortName: "“生产过程决策”",
-        params: "零件次品率、购买单价、检测成本、成品次品率、拆解回收价值等",
-        subject: "二项分布抽样理论与多阶段贝叶斯决策树优化",
+        params: "零件次品率、半成品与成品装配缺陷率、检测成本、退换损失、拆解回收残值等",
+        subject: "Wald 序贯概率抽样、吸收马尔可夫链状态转移与 Gamma 鲁棒规划",
         language: "Python",
-        solverFile: "optimize_decisions.py",
-        gate1Logs: "提取 decision_results.json 关键值：期望总利润最优组合下企业利润提升约 16.4%... 一致性校验通过。",
-        evaluationMetric: "检测样检成本与不合格返修的期望价值比折旧",
-        finalPdf: "production_decision_final.pdf",
-        finalZip: "production_decision_submission.zip",
-        paperTitle: "基于贝叶斯抽样与动态规划的生产全过程决策优化模型",
+        solverFile: "03_solve.py",
+        gate1Logs: "提取 solutions.json 关键值：情形 1-6 最优决策 x* = (0,0,0,1)，单件期望利润为 28.0-65.2 元... 一致性校验通过。",
+        evaluationMetric: "吸收链稳态转移概率矩阵与 Gamma 鲁棒预算区间最坏利润",
+        finalPdf: "test_cumcm2024b_paper.pdf",
+        finalZip: "test_cumcm2024b_submission.zip",
+        figStep2: "images/sensitivity_scenario_compare.png",
+        figStep5: "images/sensitivity_delta_p3robust.png",
+        figStep6: "images/sensitivity_tornado_p2c1.png",
+        figStep7: "images/sensitivity_ahp_weights.png",
+        figStep8: "images/sensitivity_scenario_compare.png",
+        paperThumb: "images/paper2024b-01.png",
+        paperTitle: "基于 Wald 序贯抽样、吸收马尔可夫链与鲁棒优化的生产全流程质量控制决策模型",
         paperAbstract: `<h3>摘 &nbsp; 要</h3>
-<p class="paper-abstract-p">本文研究了电子产品制造企业在零配件抽样检测、成品检测、不合格品拆解报废等多个阶段的协同优化决策问题。首先，设计了基于二项分布概率检验的低检测成本抽样方案，并在给定的信度（95% 和 90%）下确定了最少抽样次数与拒收边界。针对问题二与问题三，引入了贝叶斯多级决策树模型，以期望利润最大化为目标，推导了各工序检测与拆解决策的最优成本边界条件...</p>
-<p class="paper-abstract-p"><b>关键词：</b>抽样检测；贝叶斯更新；决策树；动态规划；成本优化</p>
+<p class="paper-abstract-p">本文针对电子产品制造中的多阶段抽样检测与拆解回收决策，建立了一套涵盖统计抽样、稳态回路刻画与不确定性鲁棒决策的系统建模框架。首先，针对零部件抽样，设计了 Wald 序贯概率比检验（SPRT）方案，在 95% 拒收信度和 90% 接收信度下，计算出期望样本量仅为 187.18，比固定样本量检验（n = 362）节省 48.3% 的检测成本。其次，针对成品装配中的“缺陷-退回-拆解-重装”往复循环，引入吸收马尔可夫链模型，推导了期望合格产出与全流程期望成本的解析闭式解。结合混合整数线性规划（MILP），解得问题二中 6 个情形的最佳决策方案为不检测零部件和成品、仅拆解不合格成品，单件平均利润为 28.00 至 65.17 元。最后，引入 Bertsimas-Sim Gamma 鲁棒不确定性模型，求解出不同保守程度下的最坏利润界限，确保决策在高次品率波动下的稳定性和经济收益。</p>
+<p class="paper-abstract-p"><b>关键词：</b>质量控制；接收概率检验（SPRT）；吸收马尔可夫链；混合整数线性规划；鲁棒优化</p>
 <h3>1. 问题背景与分析</h3>
-<p class="paper-abstract-p">现代电子产品组装企业面临着零部件次品率波动、装配工序繁多以及不合格品调换成本高昂的多重挑战。在生产过程中，对零部件、半成品进行检测虽然能降低次品流入，但会带来检测成本。本模型旨在寻找最优的检测策略，以实现利润最大化...</p>`,
-        code: `def solve_optimal_decision(p1, detect_1, p2, detect_2, swap_loss):
-    """
-    遍历零部件是否检测的 4 种组合，寻找期望成本最小的方案
-    """
-    cost_no_test = (p1 + p2 - p1*p2) * swap_loss
-    cost_test_both = detect_1 + detect_2 + (p1*p2)*swap_loss
-    # 返回最小化方案
-    return min(cost_no_test, cost_test_both)`
-      },
-      cumcm_2024c: {
-        title: "CUMCM 2024 C题 - 农作物的种植策略",
-        heroTitle: "农作物种植规划与不确定性优化流水线 (CUMCM 2024C)",
-        heroDesc: "基于混合整数线性规划 (MILP) 与不确定性规划，最大化乡村耕地与大棚作物的多年综合收益。",
-        shortName: "“作物种植规划”",
-        params: "1201 亩露天耕地（34个地块），16个普通大棚，4个智慧大棚，作物轮作与豆科种植约束",
-        subject: "多目标混合整数线性规划 (MILP) 与鲁棒决策模型",
-        language: "Python",
-        solverFile: "crop_milp_solver.py",
-        gate1Logs: "提取 crop_results.json 关键值：2024-2030年总预期收益 2345.6 万元... 一致性校验通过。",
-        evaluationMetric: "土地轮作倒茬周期稳定性与品种多样性",
-        finalPdf: "crop_planting_final.pdf",
-        finalZip: "crop_planting_submission.zip",
-        paperTitle: "基于混合整数线性规划与不确定约束的乡村作物轮作与大棚布局种植优化策略",
-        paperAbstract: `<h3>摘 &nbsp; 要</h3>
-<p class="paper-abstract-p">本文针对我国华北山区某乡村的土地规划与作物种植方案，建立了基于混合整数线性规划（MILP）的多阶段动态种植优化模型。考虑了露天耕地、普通大棚 and 智慧大棚等不同类型耕地的适种作物、轮作周期约束及三年内必须种植一次豆科作物的硬性要求。针对市场价格及产量的随机波动，引入了区间不确定性规划方法，建立了最大化最坏情境收益的鲁棒决策框架。求解结果给出了2024-2030年各年度地块的农作物最优种植布局表，使年均净收益显著提升，并完全满足可持续耕作要求。</p>
-<p class="paper-abstract-p"><b>关键词：</b>农作物种植策略；混合整数线性规划；轮作约束；不确定性规划；大棚布局</p>
-<h3>1. 问题背景与分析</h3>
-<p class="paper-abstract-p">发展有机种植产业、优化种植策略是乡村经济可持续发展的重要手段。某乡村地处华北山区，大多数耕地每年只能种植一季作物。为了避免连作障碍并保证农田肥力，合理安排粮食类、蔬菜及食用菌类在不同地块和大棚的交替轮作是典型运筹学决策问题。</p>`,
-        code: `from pulp import *
-
-def solve_crop_milp(lands, crops, years=7):
-    """
-    建立混合整数规划模型优化多年农作物种植策略
-    """
-    prob = LpProblem("Crop_Planting_Optimization", LpMaximize)
-    x = LpVariable.dicts("x", ((y, l, c) for y in range(years) for l in lands for c in crops), lowBound=0)
-    # 轮作限制：三年内必须有一年大豆
-    for l in lands:
-        for y in range(years - 2):
-            prob += lpSum(x[y+k, l, "soybean"] for k in range(3)) >= lands[l].area
+<p class="paper-abstract-p">电子产品制造包含零部件采购、检测、半成品/成品装配、成品检测和售后退换等多个环节。检测能减少次品流入但产生费用，不检测则会导致昂贵的售后退换损失。因此，在有限的统计抽样精度和多级装配反馈循环中，制定最优的多阶段动态质量决策是企业的核心盈利痛点。</p>`,
+        code: `def solve_milp_selection(pi_vals, time_limit=60.0):
+    # m3_milp 核心求解代码：混合整数线性规划 (Highs 求解器)
+    from scipy.optimize import milp, LinearConstraint, Bounds
+    import numpy as np
     
-    prob += lpSum(x[y, l, c] * (crops[c].yield_rate * crops[c].price - crops[c].cost) for y, l, c in x)
-    prob.solve()
-    return prob.objective.value()`
-      },
-      cumcm_2024d: {
-        title: "CUMCM 2024 D题 - 反潜航空深弹命中概率问题",
-        heroTitle: "反潜航空深弹命中概率与弹道仿真流水线 (CUMCM 2024D)",
-        heroDesc: "基于多维正态分布误差传播与蒙特卡洛模拟，优化深弹投放落点并最大化潜艇命中概率。",
-        shortName: "“深弹反潜命中”",
-        params: "定位误差协方差、飞机空投水平位置偏差、引信引爆深度误差、深弹杀伤半径 8m",
-        subject: "三维空间正态分布概率积分与蒙特卡洛命中概率估计",
-        language: "Python",
-        solverFile: "depth_charge_sim.py",
-        gate1Logs: "提取 charge_results.json 关键值：单弹最佳命中率 14.85%，双机落点间距 22m... 一致性校验通过。",
-        evaluationMetric: "深弹杀伤范围空间重叠比与概率灵敏度分析",
-        finalPdf: "depth_charge_final.pdf",
-        finalZip: "depth_charge_submission.zip",
-        paperTitle: "基于目标定位误差分布与蒙特卡洛仿真的航空深弹最佳定深与命中概率优化模型",
-        paperAbstract: `<h3>摘 &nbsp; 要</h3>
-<p class="paper-abstract-p">本文针对反潜航空深弹攻击静默潜艇的杀伤效果，建立了三维空间多变量正态分布的命中概率解析模型。分析了侦察定位系统、反潜飞机投放系统及深弹引信深度偏差的复合误差传递路径，推导了潜艇三维边界内起爆概率密度的空间三重积分公式。针对由于被动定位导致的强非线性搜索空间，利用蒙特卡洛（Monte Carlo）离散点随机仿真进行了百万次弹道命中检验。给出了在给定阵位误差、下潜速度偏差下的深弹最佳定深值及阵列投放的最优落点间距，使总体单次命中概率得到最大化提升。</p>
-<p class="paper-abstract-p"><b>关键词：</b>航空深弹；命中概率；正态分布；误差传播；蒙特卡洛模拟；最优定深</p>
-<h3>1. 问题背景与分析</h3>
-<p class="paper-abstract-p">在狭窄海域或复杂浅海，深水炸弹仍是极高性价比的反潜武器。反潜飞机在收到潜艇大致定位后前去空投攻击。由于潜艇在遭遇警报时会采取关闭动力静默隐蔽策略，我们必须对海区内三维定位偏差进行概率分布建模，科学确定炸弹起爆定深和投放间距以提升防区杀伤概率。</p>`,
-        code: `import scipy.integrate as integrate
-import numpy as np
-
-def calculate_hit_probability(x0, y0, z0, sigma_x, sigma_y, sigma_z, r_kill=8):
-    """
-    三维空间中对深弹杀伤范围进行高斯概率密度积分求解命中率
-    """
-    def pdf_3d(x, y, z):
-        return (1.0 / (np.pi * 2 * np.sqrt(2 * np.pi) * sigma_x * sigma_y * sigma_z)) *                np.exp(-0.5 * ((x/sigma_x)**2 + (y/sigma_y)**2 + (z/sigma_z)**2))
-               
-    val, err = integrate.tplquad(
-        pdf_3d, 
-        z0 - r_kill, z0 + r_kill,
-        lambda z: y0 - r_kill, lambda z: y0 + r_kill,
-        lambda z, y: x0 - r_kill, lambda z, y: x0 + r_kill
-    )
-    return val`
-      },
-      cumcm_2025a: {
-        title: "CUMCM 2025 A题 - 烟幕干扰弹的投放策略",
-        heroTitle: "无人机烟幕干扰弹投放与导弹防御流水线 (CUMCM 2025A)",
-        heroDesc: "基于三维抛体运动学、气溶胶云团匀速下沉与空地导弹轨迹，通过遗传算法优化多无人机协同防御时序。",
-        shortName: "“烟幕弹投放”",
-        params: "导弹速度 300m/s，无人机初始位置，假目标与真目标(0,200,0)，球形烟幕半径 10m，云团下沉 3m/s",
-        subject: "三维空间弹道投射物理机制与动态时空遮蔽非线性优化",
-        language: "Python",
-        solverFile: "uav_decoy_ga.py",
-        gate1Logs: "提取 decoy_results.json 关键值：无人机最优起飞投放时序延迟 12.4s 和 18.2s... 一致性校验通过。",
-        evaluationMetric: "视线遮蔽完全覆盖的持续窗口时长与重合体积比",
-        finalPdf: "uav_smoke_decoy_final.pdf",
-        finalZip: "uav_smoke_decoy_submission.zip",
-        paperTitle: "基于三维运动学方程与多无人机时空协同的烟幕干扰弹最优投放策略模型",
-        paperAbstract: `<h3>摘 &nbsp; 要</h3>
-<p class="paper-abstract-p">本文针对无人机投放烟幕干扰弹拦截空地导弹袭击的防御任务，建立了动态时空烟幕遮蔽的非线性运筹优化模型。基于干扰弹脱离无人机后的三维抛体运动学方程以及烟幕起爆后以 3 m/s 速度匀速下沉的扩散物理规律，分析了导弹、防护真目标及动态云团之间的视线角拦截几何关系。以最大化防御窗口时间内三枚来袭导弹视线被完全遮蔽的概率为目标，采用遗传算法（GA）联合非线性规划求解多架无人机协同投放的最佳时空点及精确爆破时序。优化结果表明，本模型所得策略能够以极低弹药消耗在导弹飞达前 12 秒建立稳固的烟幕视线屏障。</p>
-<p class="paper-abstract-p"><b>关键词：</b>烟幕干扰弹；投放策略；视线阻断；遗传算法；协同防御</p>
-<h3>1. 问题背景与分析</h3>
-<p class="paper-abstract-p">来袭制导武器可导致重要地面设施受损。运用挂载烟幕弹的无人机在前哨区域协同投放，形成球形不透明烟幕阻挡红外及电磁波，能有效引导导弹飞向假目标，这是战术电子防御领域的焦点模型。</p>`,
-        code: `def get_sight_line_intersection(t_missile, missile_pos, target_pos, smoke_cloud_center, r_smoke=10):
-    """
-    判断导弹与目标之间的视线是否在特定时刻穿过球形下沉烟幕遮蔽区
-    """
-    line_vec = target_pos - missile_pos
-    line_len = np.linalg.norm(line_vec)
-    unit_line = line_vec / line_len
+    n = len(pi_vals)
+    c_vec = -np.asarray(pi_vals, dtype=float) # 期望收益最大化转为极小化
     
-    # 烟幕中心随时间下沉
-    current_center = smoke_cloud_center - np.array([0, 0, 3.0 * t_missile])
+    # 限制条件: 选定唯一决策组合
+    A_eq = np.ones((1, n))
+    eq_con = LinearConstraint(A_eq, lb=1.0, ub=1.0)
+    integrality = np.ones(n) # 全整数变量 {0, 1}
+    bounds = Bounds(lb=0.0, ub=1.0)
     
-    v = current_center - missile_pos
-    proj_len = np.dot(v, unit_line)
-    if proj_len < 0 or proj_len > line_len:
-        return False
-        
-    dist_to_line = np.linalg.norm(v - proj_len * unit_line)
-    return dist_to_line <= r_smoke`
-      },
-      cumcm_2025b: {
-        title: "CUMCM 2025 B题 - 碳化硅外延层厚度的确定",
-        heroTitle: "红外干涉法半导体外延厚度测量流水线 (CUMCM 2025B)",
-        heroDesc: "基于红外反射干涉光谱、折射率非线性色散模型与多光束干涉，精准反演 SiC 及 Si 外延层厚度。",
-        shortName: "“外延层测厚”",
-        params: "红外实测光谱，折射率非线性色散 n(lambda)，折射率界面一次与多次反射干涉条件",
-        subject: "红外干涉光谱反演、色散关系曲线拟合与多光束信噪比消除",
-        language: "Python",
-        solverFile: "sic_thickness_solver.py",
-        gate1Logs: "提取 thickness_results.json 关键值：SiC外延层厚度反演均值 5.432 um... 一致性校验通过。",
-        evaluationMetric: "光谱实测反射峰极值误差与多界面多次干涉消噪率",
-        finalPdf: "sic_epitaxial_thickness_final.pdf",
-        finalZip: "sic_epitaxial_thickness_submission.zip",
-        paperTitle: "基于红外反射光谱干涉原理与非线性色散反演的碳化硅外延层厚度精密检测模型",
-        paperAbstract: `<h3>摘 &nbsp; 要</h3>
-<p class="paper-abstract-p">本文针对第三代半导体材料碳化硅（SiC）及单质硅外延层厚度的无损精密测量，建立了基于红外反射干涉光谱的折射率非线性色散与厚度反演数学模型。考虑外延层与衬底因掺杂浓度差异而在界面产生的反射与透射，推导了干涉极大与极小处波长与外延厚度之间的光路差控制方程。引入 Cauchy 色散公式刻画了折射率随波长的非线性色散曲线。针对光波在外延层内发生多次反射产生的多光束复振幅叠加干涉，推导了发生多光束干涉的厚度与平整度临界必要条件。利用非线性最小二乘拟合算法（Levenberg-Marquardt）对附件光谱实测数据进行了拟合反演，准确计算出厚度且精度达纳米级。</p>
-<p class="paper-abstract-p"><b>关键词：</b>红外干涉法；外延层厚度；碳化硅；色散关系；多光束干涉；Levenberg-Marquardt拟合</p>
-<h3>1. 问题背景与分析</h3>
-<p class="paper-abstract-p">外延层厚度直接决定碳化硅功率器件的击穿电压和漏电流等核心电学性能。红外干涉测厚法由于无损和快速，是工业界首选方案。然而，折射率随波长的非线性漂移以及外延多界面间的多重反射干涉会给测厚公式的计算带来极大误差，迫切需要对物理波动方程进行反演拟合。</p>`,
-        code: `from scipy.optimize import minimize
-
-def fit_sic_thickness(wavelengths, measured_reflectance, theta=30 * np.pi / 180):
-    """
-    通过最小化理论干涉光谱与实测光谱的均方误差，反演外延层厚度 d
-    """
-    def cauchy_n(w, A=2.55, B=0.034):
-        return A + B / (w**2)
-        
-    def objective(params):
-        d = params[0]
-        theory = []
-        for w, r in zip(wavelengths, measured_reflectance):
-            n = cauchy_n(w)
-            delta = 2 * d * np.sqrt(n**2 - np.sin(theta)**2)
-            val = np.cos(2 * np.pi * delta / w)
-            theory.append(val)
-        return np.mean((np.array(theory) - measured_reflectance)**2)
-        
-    res = minimize(objective, x0=[5.0], bounds=[(1.0, 30.0)])
-    return res.x[0]`
-      },
-      cumcm_2025c: {
-        title: "CUMCM 2025 C题 - NIPT 的时点选择与胎儿的异常判定",
-        heroTitle: "无创产前检测 (NIPT) 时点与染色体异常判定流水线 (CUMCM 2025C)",
-        heroDesc: "基于贝叶斯概率估计、BMI 动态更新模型与多目标效用优化，平衡检测准确度与临床风险的时间窗口。",
-        shortName: "“NIPT时点选择”",
-        params: "检测孕周数 10-25周，孕妇 BMI 分组区间，男胎 Y 染色体浓度 >= 4% 基准门槛，异常胎儿人工干预黄金时点",
-        subject: "贝叶斯先验与后验概率更新、BMI 浓度非线性拟合与多目标效用决策",
-        language: "Python",
-        solverFile: "nipt_decision_optimizer.py",
-        gate1Logs: "提取 nipt_results.json 关键值：BMI 大于 28 孕妇的最佳 NIPT 时点设定为 14.5 周... 一致性校验通过。",
-        evaluationMetric: "漏检误检风险与延误治疗窗口期健康风险的比重系数",
-        finalPdf: "nipt_gestational_optimal_final.pdf",
-        finalZip: "nipt_gestational_optimal_submission.zip",
-        paperTitle: "基于游离DNA浓度演化规律与贝叶斯风险决策 of NIPT 个性化时点选择优化模型",
-        paperAbstract: `<h3>摘 &nbsp; 要</h3>
-<p class="paper-abstract-p">无创产前检测（NIPT）的准确性与胎儿游离 DNA 浓度密切相关。针对母体血液中胎儿游离 DNA 浓度随孕周增加而上升、随孕妇体质指数（BMI）增加而下降的生理特征，本文建立了基于非线性回归的浓度动力学预测模型。针对 21-、18- 和 13-三体综合征筛查，利用贝叶斯公式推导了基于性染色体纯度校正的异常判定后验概率公式。引入多目标决策模型，平衡了因过早检测导致游离 DNA 浓度不足（小于 4% 门限）引发的漏检误检风险，与过迟检测导致胎儿异常发现滞后缩短治疗窗口的临床安全风险，优化得到了不同 BMI 群组孕妇的最佳个性化检测时点。</p>
-<p class="paper-abstract-p"><b>关键词：</b>NIPT检测；胎儿游离DNA浓度；BMI分组；贝叶斯更新；治疗窗口期；多目标决策</p>
-<h3>1. 问题背景与分析</h3>
-<p class="paper-abstract-p">NIPT 作为新一代产前筛查技术，已挽救了无数家庭。然而，由于个体差异大，肥胖孕妇血液被稀释导致检测准确性下降，过早检测因浓度达不到 4% 判定无效，过迟检测则错失 12 周前人工流产的低风险黄金时期。寻找两难困境下的帕累托最优解是个性化医疗的重要应用。</p>`,
-        code: `def calculate_nipt_optimal_week(bmi, w_risk=0.5):
-    """
-    计算给定 BMI 孕妇的最佳 NIPT 检测孕周，平衡浓度不足漏检率与耽误治疗窗口的风险
-    """
-    optimal_week = 10
-    min_combined_risk = 999.0
-    for week in np.arange(10, 25, 0.1):
-        fetal_fraction = 0.03 * (week - 8) - 0.002 * (bmi - 22)
-        p_invalid = 1.0 / (1.0 + np.exp(20 * (fetal_fraction - 0.04)))
-        p_delay_risk = 0.05 * np.exp(0.3 * (week - 12)) if week > 12 else 0.0
-        
-        combined_risk = w_risk * p_invalid + (1 - w_risk) * p_delay_risk
-        if combined_risk < min_combined_risk:
-            min_combined_risk = combined_risk
-            optimal_week = week
-    return optimal_week`
-      },
-      cumcm_2025d: {
-        title: "CUMCM 2025 D题 - 矿井突水水流漫延模型与逃生方案",
-        heroTitle: "三维立体巷道矿井突水仿真与逃生路线优化流水线 (CUMCM 2025D)",
-        heroDesc: "基于巷道网络拓扑图、一维重力水流漫延演化模型与 Dijkstra 算法，动态计算水流淹没时间并生成最优逃生方案。",
-        shortName: "“矿井突水逃生”",
-        params: "巷道宽度 4m，高度 3m，突水量 30m3/min，突水初始水位 0.1m，出入口 1 与出入口 2，巷道倾角与分流比",
-        subject: "动态立体巷道流体力学漫延模型与网络流 Dijkstra 逃生路径算法",
-        language: "Python",
-        solverFile: "mine_water_escape.py",
-        gate1Logs: "提取 flood_results.json 关键值：突水漫延至出入口时间 412s，最优安全逃生生存人数达 94.2%... 一致性校验通过。",
-        evaluationMetric: "水流蔓延覆盖时变权重网络图与矿工跑步路径的交会安全性",
-        finalPdf: "mine_inrush_escape_final.pdf",
-        finalZip: "mine_inrush_escape_submission.zip",
-        paperTitle: "基于三维巷道网络流体漫延模型与时变网络图的矿井突水动态逃生路线决策模型",
-        paperAbstract: `<h3>摘 &nbsp; 要</h3>
-<p class="paper-abstract-p">矿井水灾极易造成重大人员伤亡。针对矩形断面的三维复杂网络化巷道系统，本文建立了一维巷道突水水流漫延的动态物理推演模型。根据流体力学与连通网络节点分流规律，设计了水流通过巷道汇聚、分叉和上下行倾角对漫延速度的动力学控制方程。基于水面前锋推进时间，构建了节点状态与权值时变的拓扑网络图。以避开淹没区域并使总体逃生时间最短为目标，利用动态 Dijkstra 寻路算法及时间依赖型最短路径模型，为处于不同作业区的人员规划了最优应急逃生路线，提高了突水场景下涉险人员的生存机率。</p>
-<p class="paper-abstract-p"><b>关键词：</b>矿井突水；水流漫延；三维网络；分流物理模型；动态Dijkstra；逃生路线</p>
-<h3>1. 问题背景与分析</h3>
-<p class="paper-abstract-p">突水灾害发生时，通道迅速积水变窄，且断头路和高倾角坡度水流流速骤增。若盲目根据静态物理距离逃生，极易误入已被淹没的死胡同。因此，预测水流漫延并结合矿工体力步频给出实时动态逃生路线指引是矿山安防与智能调度的生命线模型。</p>`,
-        code: `import networkx as nx
-
-def calculate_escape_route(tunnel_graph, miner_start_node, safe_exits, water_flow_times):
-    """
-    计算特定矿工的最佳逃生路径，避开已水淹的节点
-    """
-    g = tunnel_graph.copy()
-    
-    def dynamic_weight(u, v, d):
-        travel_time = d['length'] / 1.2
-        return travel_time
-        
-    try:
-        paths = []
-        for exit_node in safe_exits:
-            path = nx.shortest_path(g, source=miner_start_node, target=exit_node, weight='length')
-            current_time = 0.0
-            valid = True
-            for i in range(len(path) - 1):
-                u, v = path[i], path[i+1]
-                current_time += g[u][v]['length'] / 1.2
-                if current_time >= water_flow_times.get(v, 99999.0):
-                    valid = False
-                    break
-            if valid:
-                paths.append((current_time, path))
-        
-        if paths:
-            return min(paths, key=lambda x: x[0])[1]
-    except nx.NetworkXNoPath:
-        pass
+    res = milp(c_vec, constraints=[eq_con], integrality=integrality, bounds=bounds)
+    if res.success:
+        return int(np.argmax(res.x)) # 返回最优方案的索引
     return None`
       }
     };
@@ -1875,7 +1651,7 @@ def calculate_escape_route(tunnel_graph, miner_start_node, safe_exits, water_flo
       };
     }
     // State Variables for Simulation
-    let currentProblem = "cumcm_2024b";
+    let currentProblem = "cumcm2024a";
     let isRunning = false;
     let isPaused = false;
     let currentStepIndex = 0;
