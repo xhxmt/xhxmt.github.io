@@ -947,8 +947,8 @@
     
     <!-- Hero Section -->
     <section class="hero">
-      <h1>多智能体数学建模流水线</h1>
-      <p>一个端到端的本地多智能体协作框架，为全国大学生数学建模竞赛（CUMCM）及 MCM/ICM 赛事提供完整的文献检索、并行建模、数学求解、代码校验和 LaTeX 论文自动排版流程。</p>
+      <h1 id="hero-title">多智能体数学建模流水线</h1>
+      <p id="hero-desc">一个端到端的本地多智能体协作框架，为全国大学生数学建模竞赛（CUMCM）及 MCM/ICM 赛事提供完整的文献检索、并行建模、数学求解、代码校验和 LaTeX 论文自动排版流程。</p>
       
       <div class="controls-panel">
         <div class="select-group">
@@ -1131,9 +1131,290 @@
 
   <!-- Mock Data for Simulation -->
   <script>
+    const CUMCM_TAIL_STEPS = [
+      {
+        step: 11,
+        phase: "writing",
+        phaseName: "论文撰写",
+        title: "Step 11: 学术质量审查与漏洞挑刺",
+        agent: "盲审评阅专家智能体",
+        description: "扮演严格的研究生论文盲审老师，对排版细节、公式逻辑错误、分析缺失进行苛刻审查，并开出问题清单（Critique Report）。",
+        inputs: ["papers/paper_draft.tex", "papers/consistency_report.json"],
+        outputs: ["papers/review_critique.md"],
+        prompt: "你是一个苛刻的数学建模竞赛评委。请通读我们的 Latex 论文，指出公式排版不规范、敏感性分析自变量选取不够多、模型假设过于理想化等 5 处严重问题，写在 review_critique.md 中，命令下游 Agent 修改。",
+        logs: [
+          "[Reviewer Agent] 开始对论文 LaTeX 初稿进行严格评审...",
+          "[Reviewer Agent] 评审完毕。指出 3 处缺陷：1) 符号表中符号 alpha 与 eta 重合; 2) 缺少风向扰动的数值稳定性模拟; 3) 论文第二页公式 (4.2) 左右括号不匹配。",
+          "[System] 生成评审报告: papers/review_critique.md. 状态：异常，触发下游自动修复流程。"
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: null
+      },
+      {
+        step: 12,
+        phase: "writing",
+        phaseName: "论文撰写",
+        title: "Step 12: 智能体协同对账与修改",
+        agent: "论文纠错与修改组",
+        description: "根据盲审意见报告自动进行增量修补。调用正则替换与文本改写，修正 LaTeX 排版错误，重新生成公式，并将重算数据补充写入正文。",
+        inputs: ["papers/review_critique.md", "papers/paper_draft.tex"],
+        outputs: ["papers/paper_revised.tex"],
+        prompt: "根据 review_critique.md 的漏洞清单，编辑并修正 paper_draft.tex 中的公式括号错误，统一符号命名冲突，生成修改后的 paper_revised.tex。",
+        logs: [
+          "[Editor Agent] 加载初稿及审查清单...",
+          "[Editor Agent] 正在修正第二页公式 (4.2) 的括号平衡: (a + b) 修正为 \\left( a+b \\right)...",
+          "[Editor Agent] 重新融合符号表变量，修改 alpha 的定义为镜面入射偏角...",
+          "[System] 修改完毕，输出修订版代码: papers/paper_revised.tex"
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: null
+      },
+      {
+        step: 13,
+        phase: "writing",
+        phaseName: "论文撰写",
+        title: "Step 13: 虚拟评阅人判定门禁 (Gate 2)",
+        agent: "竞赛评委判定智能体",
+        description: "依据历年国赛/美赛官方 O 奖评语及评分细则建立的虚拟评委打分模型。对论文的创新点、逻辑链、可读性做出最终模拟判定，打分 CR 达标则放行编译。",
+        inputs: ["papers/paper_revised.tex"],
+        outputs: ["papers/simulated_judging.json"],
+        prompt: "你作为 2024 CUMCM/MCM 评审组副组长，对修订后的论文打分。根据模型原创度、三维仿真细节、图表整洁性以及数据高度一致性评级，判断该论文是否达到优秀奖/一等奖（F奖/O奖）候选水平。输出打分细节与评语。",
+        logs: [
+          "[Judge Agent] 启动赛题标准评阅人打分模型...",
+          "[Judge Agent] 评定得分: 模型结构完整性: 92/100, 求解结果正确性: 95/100, 排版美观度: 90/100.",
+          "[Judge Agent] 模拟评语：论文行文规范，基于光学物理的三维几何投影计算极其硬核，计算出的余弦效率在镜场中分布极具规律；稳健性测试扎实，图表清晰。建议通过，推荐一等奖级别。",
+          "[System] 评阅通过，分值 92.4分。生成: papers/simulated_judging.json"
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: null
+      },
+      {
+        step: 14,
+        phase: "writing",
+        phaseName: "论文撰写",
+        title: "Step 14: 中英文摘要深度抛光",
+        agent: "学术润色智能体",
+        description: "摘要是数模竞赛的第一门面。该步利用专业的摘要打磨 Prompt，提炼论文的核心求解精度、算法名称和核心结论，使摘要达到“短、精、强”的学术标准。",
+        inputs: ["papers/paper_revised.tex", "papers/simulated_judging.json"],
+        outputs: ["papers/paper_final_abstract.tex"],
+        prompt: "优化当前论文的摘要。删除拖泥带水的背景叙述，直接突出核心模型（三维投影反射几何模型 + 全局粒子群优化算法）、求解出的具体数据结果（定日镜面数、年均热功率增幅等）以及敏感性测试下的波动阈值，确保评委一眼看中。",
+        logs: [
+          "[Polisher Agent] 对学术摘要进行精简和提纯...",
+          "[Polisher Agent] 重点标粗了本项研究的量化贡献：‘相比常规排布，阴影面积缩小 14.8%，使得年均输出热能提升了 12%’。",
+          "[System] 输出精雕摘要: papers/paper_final_abstract.tex"
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: null
+      },
+      {
+        step: 15,
+        phase: "writing",
+        phaseName: "论文撰写",
+        title: "Step 15: 终稿格式校验与目录对齐",
+        agent: "文献引用与拼写检查器",
+        description: "全面排查文献交叉引用、图表编号连续性、拼写语法问题，对 LaTeX 代码中的图表排版进行最终微调对齐。",
+        inputs: ["papers/paper_final_abstract.tex"],
+        outputs: ["papers/paper_final.tex"],
+        prompt: "核对论文中的所有 bib 参考文献引用，修复未定义的 label，并检查正文中引用的图表序列（如 Figure 1, Figure 2）是否按顺序递增，确认无悬空图表。",
+        logs: [
+          "[Linter Agent] 启动参考文献及图表引用格式校验...",
+          "[Linter Agent] 自动补齐 4 处参考文献的 bibtex 引用索引号...",
+          "[Linter Agent] 正文图表标号顺序扫描：[图1.1 -> 图1.2 -> 图2.1]，顺序正确，无未定义图表标签。",
+          "[System] 输出终版本 LaTeX 主源码: papers/paper_final.tex"
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: null
+      },
+      {
+        step: 16,
+        phase: "writing",
+        phaseName: "论文撰写",
+        title: "Step 16: LaTeX 编译与打包压缩交付",
+        agent: "系统交付脚本 (compile_paper.sh)",
+        description: "自动调用 `compile_paper.sh` 调用 xelatex 进行编译（进行 BibTeX - xelatex - xelatex 三次编译），生成高质量学术 PDF 放入 `papers/`。最后将求解代码、参数配置、仿真图和 PDF 打包归档为待提交压缩包。",
+        inputs: ["papers/paper_final.tex"],
+        outputs: ["papers/solar_heliostat_final.pdf", "papers/solar_heliostat_submission.zip"],
+        prompt: "调用 xelatex 命令行对 paper_final.tex 进行三次迭代编译。确保数学公式与中文字体正常渲染，生成最终论文 PDF 文件，并将整个 workspace 按照组委会格式压缩打包。",
+        logs: [
+          "[System] 调用 compile_paper.sh 编译终端命令: xelatex -interaction=nonstopmode paper_final.tex",
+          "[System] [XeLaTeX] 编译中, 正在处理字体映射...",
+          "[System] [XeLaTeX] 编译第一遍, 生成辅助文件 paper_final.aux...",
+          "[System] [XeLaTeX] 编译第二遍, 建立公式符号索引...",
+          "[System] [XeLaTeX] 编译第三遍, 渲染最终图表嵌入...",
+          "[System] 编译成功！成功生成高质量学术论文: papers/solar_heliostat_final.pdf (大小: 1.2 MB)",
+          "[System] 压缩打包程序代码与 PDF 交付物: papers/solar_heliostat_submission.zip",
+          "[System] 管道执行全部成功！将当前项目由 ongoing/ 搬移至: complete/solar_heliostat_2024b",
+          "[System] == Modeling Factory 流水线运行结束 =="
+        ],
+        code: "",
+        visual: {
+          type: "image",
+          url: "images/paper2024b-01.png",
+          title: "Step 16: 编译生成的全国一等奖候选论文封面及摘要页"
+        },
+        paper: {
+          page: 1,
+          title: "基于三维几何投影与全局粒子群算法的定日镜场排布优化设计",
+          content: `<h3>摘 &nbsp; 要</h3>
+<p class="paper-abstract-p">本文针对太阳能光热电站定日镜场的优化设计与控制问题，建立了一套基于三维向量光学几何投影的效率计算模型，并设计了一种新型定日镜场优化排布算法。首先，推导了定日镜法向量与太阳位置向量的精确解析方程，计算了关键的余弦损失率。通过三维射线几何投影裁剪算法，定量计算了多镜交互情况下的阴影遮挡损失。在大气透射率和集热聚焦效率方程的基础上，以最大化单位面积热功率为目标，建立粒子群参数最优化模型。结果显示，我们的设计能使镜面年均总效率相比对称式布局提升 14.8%...</p>
+<p class="paper-abstract-p"><b>关键词：</b>定日镜场；余弦损失；三维投影裁剪；粒子群算法；稳健性设计</p>
+<h3>1. 问题背景与分析</h3>
+<p class="paper-abstract-p">太阳能光热电站通过数以千计的定日镜将太阳辐射聚焦于吸收塔顶部的集热器上。定日镜在反射阳光时，由于入射方向与法向夹角不同会产生余弦损失；由于定日镜相互靠拢，又会产生阴影与遮挡损失。本题要求我们通过优化镜场排布和镜面法线角度，最大化年均单位面积输出热功率，极具应用价值...</p>`,
+          image: "images/paper2024b-01.png"
+        }
+      }
+    ];
+
+    const MCM_TAIL_STEPS = [
+      {
+        step: 11,
+        phase: "writing",
+        phaseName: "论文撰写",
+        title: "Step 11: 学术质量审查与漏洞挑刺",
+        agent: "盲审评阅专家智能体",
+        description: "扮演严格的研究生论文盲审老师，对排版细节、公式逻辑错误、分析缺失进行苛刻审查，并开出问题清单（Critique Report）。",
+        inputs: ["papers/paper_draft.tex", "papers/consistency_report.json"],
+        outputs: ["papers/review_critique.md"],
+        prompt: "你是一个苛刻的数学建模竞赛评委。请通读我们的 Latex 论文，指出公式排版不规范、敏感性分析自变量选取不够多、模型假设过于理想化等 5 处严重问题，写在 review_critique.md 中，命令下游 Agent 修改。",
+        logs: [
+          "[Reviewer Agent] 开始对论文 LaTeX 初稿进行严格评审...",
+          "[Reviewer Agent] 评审完毕。指出 3 处缺陷：1) 符号表中的 $M(t)$ 与马氏转移状态概率符号冲突; 2) 缺少温网女单决赛数据集的交叉验证; 3) 论文第三页公式 (5.3) 积分上下限错误。",
+          "[System] 生成评审报告: papers/review_critique.md. 状态：异常，触发下游自动修复流程。"
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: null
+      },
+      {
+        step: 12,
+        phase: "writing",
+        phaseName: "论文撰写",
+        title: "Step 12: 智能体协同对账与修改",
+        agent: "论文纠错与修改组",
+        description: "根据盲审意见报告自动进行增量修补。调用正则替换与文本改写，修正 LaTeX 排版错误，重新生成公式，并将重算数据补充写入正文。",
+        inputs: ["papers/review_critique.md", "papers/paper_draft.tex"],
+        outputs: ["papers/paper_revised.tex"],
+        prompt: "根据 review_critique.md 的漏洞清单，编辑并修正 paper_draft.tex 中的公式括号错误，统一符号命名冲突，生成修改后的 paper_revised.tex。",
+        logs: [
+          "[Editor Agent] 加载初稿及审查清单...",
+          "[Editor Agent] 正在修正第三页公式 (5.3) 的积分区间...已校准完毕。",
+          "[Editor Agent] 重新融合符号表变量，区分 $M(t)$ 与状态 $S$...已修改到位。",
+          "[System] 修改完毕，输出修订版代码: papers/paper_revised.tex"
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: null
+      },
+      {
+        step: 13,
+        phase: "writing",
+        phaseName: "论文撰写",
+        title: "Step 13: 虚拟评阅人判定门禁 (Gate 2)",
+        agent: "竞赛评委判定智能体",
+        description: "依据历年国赛/美赛官方 O 奖评语及评分细则建立的虚拟评委打分模型。对论文的创新点、逻辑链、可读性做出最终模拟判定，打分 CR 达标则放行编译。",
+        inputs: ["papers/paper_revised.tex"],
+        outputs: ["papers/simulated_judging.json"],
+        prompt: "你作为 2024 CUMCM/MCM 评审组副组长，对修订后的论文打分。根据模型原创度、三维仿真细节、图表整洁性以及数据高度一致性评级，判断该论文是否达到优秀奖/一等奖（F奖/O奖）候选水平。输出打分细节与评语。",
+        logs: [
+          "[Judge Agent] 启动赛题标准评阅人打分模型...",
+          "[Judge Agent] 评定得分: 模型结构完整性: 94/100, 求解结果正确性: 92/100, 排版美观度: 91/100.",
+          "[Judge Agent] 模拟评语：论文行文流畅，势头动力学模型与马尔可夫状态链的结合极其巧妙；能够有效预测温网比赛的多次反转点；对选手心理波动的蒙特卡洛仿真十分扎实。建议通过，推荐一等奖候选。",
+          "[System] 评阅通过，分值 93.2分。生成: papers/simulated_judging.json"
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: null
+      },
+      {
+        step: 14,
+        phase: "writing",
+        phaseName: "论文撰写",
+        title: "Step 14: 中英文摘要深度抛光",
+        agent: "学术润色智能体",
+        description: "摘要是数模竞赛的第一门面。该步利用专业的摘要打磨 Prompt，提炼论文的核心求解精度、算法名称和核心结论，使摘要达到“短、精、强”的学术标准。",
+        inputs: ["papers/paper_revised.tex", "papers/simulated_judging.json"],
+        outputs: ["papers/paper_final_abstract.tex"],
+        prompt: "优化当前论文的摘要。删除拖泥带水的背景叙述，直接突出核心模型（三维投影反射几何模型 + 全局粒子群优化算法）、求解出的具体数据结果（定日镜面数、年均热功率增幅等）以及敏感性测试下的波动阈值，确保评委一眼看中。",
+        logs: [
+          "[Polisher Agent] 对学术摘要进行精简和提纯...",
+          "[Polisher Agent] 优化英文表达，删除非学术字眼。将摘要首句修改为明确的时序动力学框架描述。",
+          "[Polisher Agent] 重点标粗了本项研究的量化贡献：‘模型在温网决赛数据集上的转折点检测准确率达到了 84.2%’。",
+          "[System] 输出精雕摘要: papers/paper_final_abstract.tex"
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: null
+      },
+      {
+        step: 15,
+        phase: "writing",
+        phaseName: "论文撰写",
+        title: "Step 15: 终稿格式校验与目录对齐",
+        agent: "文献引用与拼写检查器",
+        description: "全面排查文献交叉引用、图表编号连续性、拼写语法问题，对 LaTeX 代码中的图表排版进行最终微调对齐。",
+        inputs: ["papers/paper_final_abstract.tex"],
+        outputs: ["papers/paper_final.tex"],
+        prompt: "核对论文中的所有 bib 参考文献引用，修复未定义的 label，并检查正文中引用的图表序列（如 Figure 1, Figure 2）是否按顺序递增，确认无悬空图表。",
+        logs: [
+          "[Linter Agent] 启动参考文献及图表引用格式校验...",
+          "[Linter Agent] 自动补齐 3 处参考文献的 bibtex 引用索引号...",
+          "[Linter Agent] 确认图表标号顺序无悬空图表。",
+          "[System] 输出终版本 LaTeX 主源码: papers/paper_final.tex"
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: null
+      },
+      {
+        step: 16,
+        phase: "writing",
+        phaseName: "论文撰写",
+        title: "Step 16: LaTeX 编译与打包压缩交付",
+        agent: "系统交付脚本 (compile_paper.sh)",
+        description: "自动调用 `compile_paper.sh` 调用 pdflatex 进行编译（进行 BibTeX - pdflatex - pdflatex 三次编译），生成高质量学术 PDF 放入 `papers/`。最后将求解代码、参数配置、仿真图和 PDF 打包归档为待提交压缩包。",
+        inputs: ["papers/paper_final.tex"],
+        outputs: ["papers/tennis_momentum_final.pdf", "papers/tennis_momentum_submission.zip"],
+        prompt: "调用 pdflatex 命令行对 paper_final.tex 进行三次迭代编译。确保数学公式与英文排版正常渲染，生成最终论文 PDF 文件，并将整个 workspace 按照组委会格式压缩打包。",
+        logs: [
+          "[System] 调用 compile_paper.sh 编译终端命令: pdflatex -interaction=nonstopmode paper_final.tex",
+          "[System] [pdfLaTeX] 编译中...",
+          "[System] [pdfLaTeX] 编译第一遍, 生成辅助文件 paper_final.aux...",
+          "[System] [pdfLaTeX] 编译第二遍, 建立公式符号索引...",
+          "[System] [pdfLaTeX] 编译第三遍, 渲染最终图表嵌入...",
+          "[System] 编译成功！成功生成高质量学术论文: papers/tennis_momentum_final.pdf (大小: 980 KB)",
+          "[System] 压缩打包程序代码与 PDF 交付物: papers/tennis_momentum_submission.zip",
+          "[System] 管道执行全部成功！将当前项目由 ongoing/ 搬移至: complete/tennis_momentum_2024b",
+          "[System] == Modeling Factory 流水线运行结束 =="
+        ],
+        code: "",
+        visual: {
+          type: "image",
+          url: "images/paper2024b-01.png",
+          title: "Step 16: 编译生成的一等奖候选英文论文封面及摘要页"
+        },
+        paper: {
+          page: 1,
+          title: "Deciphering Tennis Momentum: A Markov State-Transition Model",
+          content: `<h3>Abstract</h3>
+<p class="paper-abstract-p">This paper provides a quantitative framework to analyze the elusive concept of 'momentum' in professional tennis matches. Utilizing Wimbledon historical feature data, we formulate a Markov State-Transition Model that captures the game point evolution. By overlaying time-series decay functions, we calculate the continuous momentum variation of players...</p>
+<p class="paper-abstract-p"><b>Keywords:</b> Tennis Momentum; Markov Chain; LSTM State Decay; Sensitivity Analysis; AHP Evaluation</p>
+<h3>1. Introduction</h3>
+<p class="paper-abstract-p">Momentum in tennis refers to the phenomenon where a sequence of successful plays shifts the psychological and physical advantage to one player, dramatically altering the probability of winning subsequent points. Although commentators frequently invoke this term, its mathematical representation and prediction remain challenging. In this study, we construct an analytical model...</p>`,
+          image: "images/paper2024b-01.png"
+        }
+      }
+    ];
+
     const PROBLEMS_DATA = {
       cumcm_2024b: {
         title: "CUMCM 2024 Problem B - 定日镜场优化设计",
+        heroTitle: "多智能体数学建模流水线 (CUMCM)",
+        heroDesc: "基于 CUMCM 2024 Problem B (定日镜场排布与控制优化) 的 16 步多智能体并行建模、求解、校验及 LaTeX 自动排版演示。",
         steps: [
           {
             step: 0,
@@ -1442,13 +1723,13 @@ def plot_efficiency_cloud(x, y, z):
             phaseName: "论文撰写",
             title: "Step 9: LaTeX 论文初稿起草",
             agent: "论文起草智能体",
-            description: "根据前几步得到的数学方程、求解结果、AHP评估报告和矢量图，自动从 LaTeX 模板（如全国大学生数学建模国赛模板）起草整篇学术论文的代码结构。",
+            description: "根据前几步得到的数学方程、求解结果、AHP评估报告 and 矢量图，自动从 LaTeX 模板（如全国大学生数学建模国赛模板）起草整篇学术论文的代码结构。",
             inputs: ["models/m_final_equations.md", "models/m3_solver/opt_results.json"],
             outputs: ["papers/paper_draft.tex"],
             prompt: "你是一个专业的 LaTeX 学术论文排版助手。请使用 CUMCM 竞赛 LaTeX 排版模板，编写论文主体初稿。要求包含标题页、摘要、目录、问题背景、模型基本假设、符号说明、核心优化模型、算法设计以及初步的求解结果表格占位符。",
             logs: [
               "[Writer Agent] 加载 CUMCM 国赛标准 LaTeX 论文模板...",
-              "[Writer Agent] 自动写入封面标题: 基于三维几何投影与全局粒子群算法的定日镜场排布优化设计...",
+              "[Writer Agent] 自动写入封面标题: 基于三维几何投影与全局粒子群算法的定日镜场排排布优化设计...",
               "[Writer Agent] 自动生成假设段落 (1. 镜面完全刚性, 2. 光线直线传播, 3. 忽略地形起伏)...",
               "[Writer Agent] 构建参数符号定义表 (含有 14 个参数 LaTeX 代码)...",
               "[Writer Agent] 将 models/ 中的公式积分式插入 LaTeX 模型推导章节...",
@@ -1460,7 +1741,7 @@ def plot_efficiency_cloud(x, y, z):
               page: 1,
               title: "基于三维几何投影与全局粒子群算法的定日镜场排布优化设计",
               content: `<h3>摘 &nbsp; 要</h3>
-<p class="paper-abstract-p">本文针对太阳能光热电站定日镜场的优化设计与控制问题，建立了一套基于三维向量光学几何投影的效率计算模型，并设计了一种新型径向环形分布优化搜索策略。首先，推导了定日镜法向量与太阳位置向量的精确解析方程，计算了关键的余弦损失率。通过三维射线几何投影裁剪算法，定量计算了多镜交互情况下的阴影遮挡损失...</p>
+<p class="paper-abstract-p">本文针对太阳能光热电站定日镜场的优化设计与控制问题，建立了一套基于三维向量光学几何投影的效率计算模型，并设计了一种新型定日镜场排布优化搜索策略。首先，推导了定日镜法向量与太阳位置向量的精确解析方程，计算了关键的余弦损失率。通过三维射线几何投影裁剪算法，定量计算了多镜交互情况下的阴影遮挡损失...</p>
 <p class="paper-abstract-p"><b>关键词：</b>定日镜场；余弦损失；三维投影裁剪；粒子群算法；稳健性设计</p>
 <h3>1. 问题背景与分析</h3>
 <p class="paper-abstract-p">太阳能光热电站通过数以千计的定日镜将太阳辐射聚焦于吸收塔顶部的集热器上。定日镜在反射阳光时，由于入射方向与法向夹角不同会产生余弦损失；由于定日镜相互靠拢，又会产生阴影与遮挡损失。本题要求我们通过优化镜场排布和镜面法线角度，最大化年均单位面积输出热功率，极具应用价值...</p>`,
@@ -1486,10 +1767,12 @@ def plot_efficiency_cloud(x, y, z):
             visual: { type: "placeholder" },
             paper: null
           }
-        ]
+        ].concat(CUMCM_TAIL_STEPS)
       },
       mcm_2024b: {
         title: "MCM 2024 Problem B - 网球赛事势头分析",
+        heroTitle: "网球赛事势头分析智能体流水线 (MCM)",
+        heroDesc: "基于 MCM 2024 Problem B (温网赛事势头分析与预测) 的 16 步多智能体马尔可夫状态转移、时序动力学建模、蒙特卡洛仿真及 LaTeX 自动排版演示。",
         steps: [
           {
             step: 0,
@@ -1774,150 +2057,9 @@ def compute_dynamic_momentum(df, w_score, w_ace, w_unforced, decay=0.15):
             visual: { type: "placeholder" },
             paper: null
           }
-        ]
+        ].concat(MCM_TAIL_STEPS)
       }
     };
-
-    // Shared remaining steps (11 to 16) for both problems, which complete the process
-    const COMMON_STEPS_TAIL = [
-      {
-        step: 11,
-        phase: "writing",
-        phaseName: "论文撰写",
-        title: "Step 11: 学术质量审查与漏洞挑刺",
-        agent: "盲审评阅专家智能体",
-        description: "扮演严格的研究生论文盲审老师，对排版细节、公式逻辑错误、分析缺失进行苛刻审查，并开出问题清单（Critique Report）。",
-        inputs: ["papers/paper_draft.tex", "papers/consistency_report.json"],
-        outputs: ["papers/review_critique.md"],
-        prompt: "你是一个苛刻的数学建模竞赛评委。请通读我们的 Latex 论文，指出公式排版不规范、敏感性分析自变量选取不够多、模型假设过于理想化等 5 处严重问题，写在 review_critique.md 中，命令下游 Agent 修改。",
-        logs: [
-          "[Reviewer Agent] 开始对论文 LaTeX 初稿进行严格评审...",
-          "[Reviewer Agent] 评审完毕。指出 3 处缺陷：1) 符号表中符号 alpha 与 delta 重合; 2) 缺少女单决赛鲁棒验证; 3) 论文第二页公式 (4.2) 左右括号不匹配。",
-          "[System] 生成评审报告: papers/review_critique.md. 状态：异常，触发下游自动修复流程。"
-        ],
-        code: "",
-        visual: { type: "placeholder" },
-        paper: null
-      },
-      {
-        step: 12,
-        phase: "writing",
-        phaseName: "论文撰写",
-        title: "Step 12: 智能体协同对账与修改",
-        agent: "论文纠错与修改组",
-        description: "根据盲审意见报告自动进行增量修补。调用正则替换与文本改写，修正 LaTeX 排版错误，重新生成公式，并将重算数据补充写入正文。",
-        inputs: ["papers/review_critique.md", "papers/paper_draft.tex"],
-        outputs: ["papers/paper_revised.tex"],
-        prompt: "根据 review_critique.md 的漏洞清单，编辑并修正 paper_draft.tex 中的公式括号错误，统一符号命名冲突，生成修改后的 paper_revised.tex。",
-        logs: [
-          "[Editor Agent] 加载初稿及审查清单...",
-          "[Editor Agent] 正在修正第二页公式 (4.2) 的括号平衡: (a + b) 修正为 \\left( a+b \\right)...",
-          "[Editor Agent] 重新融合符号表变量...",
-          "[System] 修改完毕，输出修订版代码: papers/paper_revised.tex"
-        ],
-        code: "",
-        visual: { type: "placeholder" },
-        paper: null
-      },
-      {
-        step: 13,
-        phase: "writing",
-        phaseName: "论文撰写",
-        title: "Step 13: 虚拟评阅人判定门禁 (Gate 2)",
-        agent: "竞赛评委判定智能体",
-        description: "依据历年国赛/美赛官方 O 奖评语及评分细则建立的虚拟评委打分模型。对论文的创新点、逻辑链、可读性做出最终模拟判定，打分 CR 达标则放行编译。",
-        inputs: ["papers/paper_revised.tex"],
-        outputs: ["papers/simulated_judging.json"],
-        prompt: "你作为 2024 CUMCM/MCM 评审组副组长，对修订后的论文打分。根据模型原创度、三维仿真细节、图表整洁性以及数据高度一致性评级，判断该论文是否达到优秀奖/一等奖（F奖/O奖）候选水平。输出打分细节与评语。",
-        logs: [
-          "[Judge Agent] 启动赛题标准评阅人打分模型...",
-          "[Judge Agent] 评定得分: 模型结构完整性: 92/100, 求解结果正确性: 95/100, 排版美观度: 90/100.",
-          "[Judge Agent] 模拟评语：论文行文规范，基于光学物理的三维几何投影计算极其硬核，计算出的余弦效率在镜场中分布极具规律；稳健性测试扎实，图表清晰。建议通过，推荐一等奖级别。",
-          "[System] 评阅通过，分值 92.4分。生成: papers/simulated_judging.json"
-        ],
-        code: "",
-        visual: { type: "placeholder" },
-        paper: null
-      },
-      {
-        step: 14,
-        phase: "writing",
-        phaseName: "论文撰写",
-        title: "Step 14: 中英文摘要深度抛光",
-        agent: "学术润色智能体",
-        description: "摘要是数模竞赛的第一门面。该步利用专业的摘要打磨 Prompt，提炼论文的核心求解精度、算法名称和核心结论，使摘要达到“短、精、强”的学术标准。",
-        inputs: ["papers/paper_revised.tex", "papers/simulated_judging.json"],
-        outputs: ["papers/paper_final_abstract.tex"],
-        prompt: "优化当前论文的摘要。删除拖泥带水的背景叙述，直接突出核心模型（三维投影反射几何模型 + 全局粒子群优化算法）、求解出的具体数据结果（定日镜面数、年均热功率增幅等）以及敏感性测试下的波动阈值，确保评委一眼看中。",
-        logs: [
-          "[Polisher Agent] 对学术摘要进行精简和提纯...",
-          "[Polisher Agent] 删减 120 字的冗余学术空话。将摘要第一段调整为直奔主题式的核心方程描述。",
-          "[Polisher Agent] 重点标粗了本项研究的量化贡献：‘相比常规排布，阴影面积缩小 14.8%，使得年均输出热能提升了 12%’。",
-          "[System] 输出精雕摘要: papers/paper_final_abstract.tex"
-        ],
-        code: "",
-        visual: { type: "placeholder" },
-        paper: null
-      },
-      {
-        step: 15,
-        phase: "writing",
-        phaseName: "论文撰写",
-        title: "Step 15: 终稿格式校验与目录对齐",
-        agent: "文献引用与拼写检查器",
-        description: "全面排查文献交叉引用、图表编号连续性、拼写语法问题，对 LaTeX 代码中的图表排版进行最终微调对齐。",
-        inputs: ["papers/paper_final_abstract.tex"],
-        outputs: ["papers/paper_final.tex"],
-        prompt: "核对论文中的所有 bib 参考文献引用，修复未定义的 label，并检查正文中引用的图表序列（如 Figure 1, Figure 2）是否按顺序递增，确认无悬空图表。",
-        logs: [
-          "[Linter Agent] 启动参考文献及图表引用格式校验...",
-          "[Linter Agent] 自动补齐 4 处参考文献的 bibtex 引用索引号...",
-          "[Linter Agent] 正文图表标号顺序扫描：[图1.1 -> 图1.2 -> 图2.1]，顺序正确，无未定义图表标签。",
-          "[System] 输出终版本 LaTeX 主源码: papers/paper_final.tex"
-        ],
-        code: "",
-        visual: { type: "placeholder" },
-        paper: null
-      },
-      {
-        step: 16,
-        phase: "writing",
-        phaseName: "论文撰写",
-        title: "Step 16: LaTeX 编译与打包压缩交付",
-        agent: "系统交付脚本 (compile_paper.sh)",
-        description: "自动调用 `compile_paper.sh` 调用 xelatex 进行编译（进行 BibTeX - xelatex - xelatex 三次编译），生成高质量学术 PDF 放入 `papers/`。最后将求解代码、参数配置、仿真图和 PDF 打包归档为待提交压缩包。",
-        inputs: ["papers/paper_final.tex"],
-        outputs: ["papers/solar_heliostat_final.pdf", "papers/solar_heliostat_submission.zip"],
-        prompt: "调用 xelatex 命令行对 paper_final.tex 进行三次迭代编译。确保数学公式与中文字体正常渲染，生成最终论文 PDF 文件，并将整个 workspace 按照组委会格式压缩打包。",
-        logs: [
-          "[System] 调用 compile_paper.sh 编译终端命令: xelatex -interaction=nonstopmode paper_final.tex",
-          "[System] [XeLaTeX] 编译中, 正在处理字体映射...",
-          "[System] [XeLaTeX] 编译第一遍, 生成辅助文件 paper_final.aux...",
-          "[System] [XeLaTeX] 编译第二遍, 建立公式符号索引...",
-          "[System] [XeLaTeX] 编译第三遍, 渲染最终图表嵌入...",
-          "[System] 编译成功！成功生成高质量学术论文: papers/solar_heliostat_final.pdf (大小: 1.2 MB)",
-          "[System] 压缩打包程序代码与 PDF 交付物: papers/solar_heliostat_submission.zip",
-          "[System] 管道执行全部成功！将当前项目由 ongoing/ 搬移至: complete/solar_heliostat_2024b",
-          "[System] == Modeling Factory 流水线运行结束 =="
-        ],
-        code: "",
-        visual: {
-          type: "image",
-          url: "images/paper2024b-01.png",
-          title: "Step 16: 编译生成的全国一等奖候选论文封面及摘要页"
-        },
-        paper: {
-          page: 1,
-          title: "基于三维几何投影与全局粒子群算法的定日镜场排布优化设计",
-          content: `<h3>摘 &nbsp; 要</h3>
-<p class="paper-abstract-p">本文针对太阳能光热电站定日镜场的优化设计与控制问题，建立了一套基于三维向量光学几何投影的效率计算模型，并设计了一种新型定日镜场优化排布算法。首先，推导了定日镜法向量与太阳位置向量的精确解析方程，计算了关键的余弦损失率。通过三维射线几何投影裁剪算法，定量计算了多镜交互情况下的阴影遮挡损失。在大气透射率和集热聚焦效率方程的基础上，以最大化单位面积热功率为目标，建立粒子群参数最优化模型。结果显示，我们的设计能使镜面年均总效率相比对称式布局提升 14.8%...</p>
-<p class="paper-abstract-p"><b>关键词：</b>定日镜场；余弦损失；三维投影裁剪；粒子群算法；稳健性设计</p>
-<h3>1. 问题背景与分析</h3>
-<p class="paper-abstract-p">太阳能光热电站通过数以千计的定日镜将太阳辐射聚焦于吸收塔顶部的集热器上。定日镜在反射阳光时，由于入射方向与法向夹角不同会产生余弦损失；由于定日镜相互靠拢，又会产生阴影与遮挡损失。本题要求我们通过优化镜场排布和镜面法线角度，最大化年均单位面积输出热功率，极具应用价值...</p>`,
-          image: "images/paper2024b-01.png"
-        }
-      }
-    ];
 
     // State Variables for Simulation
     let currentProblem = "cumcm_2024b";
@@ -1931,12 +2073,18 @@ def compute_dynamic_momentum(df, w_score, w_ace, w_unforced, decay=0.15):
 
     // Combined Steps List
     function getStepsList() {
-      const problemData = PROBLEMS_DATA[currentProblem];
-      return [...problemData.steps, ...COMMON_STEPS_TAIL];
+      return PROBLEMS_DATA[currentProblem].steps;
     }
 
     // Initialize UI
     document.addEventListener("DOMContentLoaded", () => {
+      // Set initial hero title and desc based on select element
+      const selectEl = document.getElementById("problem-select");
+      currentProblem = selectEl.value;
+      const problemData = PROBLEMS_DATA[currentProblem];
+      document.getElementById("hero-title").textContent = problemData.heroTitle;
+      document.getElementById("hero-desc").textContent = problemData.heroDesc;
+
       buildTimeline();
       setupEventListeners();
       showStepDetails(0);
@@ -1973,6 +2121,12 @@ def compute_dynamic_momentum(df, w_score, w_ace, w_unforced, decay=0.15):
       document.getElementById("problem-select").addEventListener("change", (e) => {
         if (isRunning) return;
         currentProblem = e.target.value;
+
+        // Dynamically update Hero details
+        const problemData = PROBLEMS_DATA[currentProblem];
+        document.getElementById("hero-title").textContent = problemData.heroTitle;
+        document.getElementById("hero-desc").textContent = problemData.heroDesc;
+
         buildTimeline();
         resetSimulation();
       });
