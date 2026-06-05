@@ -4,38 +4,41 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Modeling Factory · 多智能体数学建模流水线</title>
-  <!-- Google Fonts: Outfit for titles, Inter for UI, JetBrains Mono for code -->
+  
+  <!-- Fonts: Outfit for titles, Inter for UI, JetBrains Mono for code -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
   <style>
     :root {
-      --bg-main: #060913;
-      --bg-sidebar: #0a0f1d;
-      --bg-card: #101726;
-      --bg-card-hover: #151f33;
-      --bg-terminal: #05070c;
-      --border: #1e293b;
-      --border-focus: #38bdf8;
+      --bg-dark: #030712;
+      --bg-card: rgba(17, 24, 39, 0.7);
+      --bg-card-hover: rgba(31, 41, 55, 0.8);
+      --bg-terminal: #020617;
+      --border-color: rgba(55, 65, 81, 0.4);
+      --border-glow: rgba(56, 189, 248, 0.3);
       
-      --text-primary: #f8fafc;
-      --text-secondary: #94a3b8;
-      --text-muted: #64748b;
+      --text-primary: #f9fafb;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
       
-      --blue: #38bdf8;
-      --blue-glow: rgba(56, 189, 248, 0.15);
-      --green: #10b981;
-      --green-glow: rgba(16, 185, 129, 0.15);
-      --orange: #f59e0b;
-      --orange-glow: rgba(245, 158, 11, 0.15);
-      --purple: #a855f7;
-      --purple-glow: rgba(168, 85, 247, 0.15);
-      --red: #f43f5e;
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.25);
+      --secondary: #a855f7;
+      --secondary-glow: rgba(168, 85, 247, 0.2);
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.2);
+      --warning: #f59e0b;
+      --warning-glow: rgba(245, 158, 11, 0.2);
+      --danger: #f43f5e;
       
       --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
       --font-title: 'Outfit', sans-serif;
       --font-code: 'JetBrains Mono', monospace;
+      
+      --radius: 12px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     * {
@@ -45,19 +48,19 @@
     }
 
     body {
-      background-color: var(--bg-main);
+      background-color: var(--bg-dark);
       color: var(--text-primary);
       font-family: var(--font-ui);
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
       background-image: 
-        radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.05) 0, transparent 50%), 
-        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.04) 0, transparent 50%),
-        linear-gradient(rgba(255, 255, 255, 0.005) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.005) 1px, transparent 1px);
-      background-size: 100% 100%, 100% 100%, 24px 24px, 24px 24px;
+        radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.08) 0, transparent 50%), 
+        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.08) 0, transparent 50%),
+        linear-gradient(rgba(255, 255, 255, 0.003) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.003) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+      padding-bottom: 60px;
     }
 
     /* Scrollbars */
@@ -66,27 +69,29 @@
       height: 6px;
     }
     ::-webkit-scrollbar-track {
-      background: var(--bg-main);
+      background: var(--bg-dark);
     }
     ::-webkit-scrollbar-thumb {
-      background: var(--border);
+      background: var(--border-color);
       border-radius: 4px;
     }
     ::-webkit-scrollbar-thumb:hover {
       background: var(--text-muted);
     }
 
-    /* Top Navigation */
+    /* Header Nav */
     header {
-      height: 60px;
-      background: rgba(10, 15, 29, 0.75);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
+      height: 70px;
+      background: rgba(3, 7, 18, 0.8);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 24px;
+      padding: 0 40px;
+      position: sticky;
+      top: 0;
       z-index: 100;
     }
 
@@ -97,224 +102,327 @@
     }
 
     .brand-logo {
-      width: 24px;
-      height: 24px;
-      background: linear-gradient(135deg, var(--blue), var(--purple));
-      border-radius: 6px;
-      position: relative;
-      box-shadow: 0 0 12px var(--blue-glow);
-      animation: pulse 3s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.1); opacity: 0.8; }
-    }
-
-    .brand-name {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: white;
       font-family: var(--font-title);
+      box-shadow: 0 0 15px var(--primary-glow);
+    }
+
+    .brand-title {
+      font-family: var(--font-title);
+      font-size: 1.25rem;
       font-weight: 700;
-      font-size: 20px;
-      letter-spacing: 0.5px;
-      background: linear-gradient(to right, var(--text-primary), var(--text-secondary));
+      letter-spacing: -0.5px;
+      background: linear-gradient(to right, #ffffff, #d1d5db);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
-    .brand-tagline {
-      font-size: 12px;
-      color: var(--text-muted);
-      border-left: 1px solid var(--border);
-      padding-left: 12px;
-      margin-left: 12px;
-      display: none;
-    }
-
-    @media (min-width: 768px) {
-      .brand-tagline { display: inline; }
-    }
-
-    .system-status {
+    .nav-actions {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 20px;
     }
 
     .status-badge {
       display: flex;
       align-items: center;
       gap: 8px;
-      background: rgba(30, 41, 59, 0.4);
-      border: 1px solid var(--border);
-      padding: 6px 12px;
-      border-radius: 9999px;
-      font-size: 12px;
+      background: rgba(31, 41, 55, 0.6);
+      border: 1px solid var(--border-color);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-secondary);
     }
 
     .status-dot {
       width: 8px;
       height: 8px;
-      background-color: var(--green);
       border-radius: 50%;
-      box-shadow: 0 0 8px var(--green);
-      animation: blink 2s infinite;
+      background-color: var(--text-muted);
+      box-shadow: 0 0 8px var(--text-muted);
+      transition: var(--transition);
     }
 
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
+    .status-dot.active {
+      background-color: var(--primary);
+      box-shadow: 0 0 12px var(--primary);
+      animation: pulse 1.5s infinite alternate;
+    }
+
+    .status-dot.completed {
+      background-color: var(--success);
+      box-shadow: 0 0 12px var(--success);
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 0.6; }
+      100% { transform: scale(1.1); opacity: 1; }
+    }
+
+    .btn-github {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-primary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      background: linear-gradient(135deg, var(--bg-card-hover), var(--border-color));
+      border: 1px solid var(--border-color);
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+
+    .btn-github:hover {
+      border-color: var(--primary);
+      box-shadow: 0 0 10px var(--primary-glow);
+      transform: translateY(-1px);
     }
 
     /* Main Container */
-    .app-container {
-      flex: 1;
-      display: flex;
-      overflow: hidden;
-      position: relative;
+    .container {
+      max-width: 1400px;
+      margin: 40px auto 0;
+      padding: 0 24px;
     }
 
-    /* Left Sidebar: Workflow Stepper */
-    .sidebar {
-      width: 280px;
-      background: var(--bg-sidebar);
-      border-right: 1px solid var(--border);
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .hero h1 {
+      font-family: var(--font-title);
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #fff 30%, var(--primary) 70%, var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--text-secondary);
+      max-width: 700px;
+      margin: 0 auto 30px;
+    }
+
+    .controls-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 16px 24px;
+      display: inline-flex;
+      align-items: center;
+      gap: 20px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .select-group {
       display: flex;
       flex-direction: column;
-      overflow-y: auto;
-      padding: 20px 12px;
-      gap: 8px;
+      align-items: flex-start;
+      gap: 4px;
     }
 
-    .sidebar-title {
-      font-family: var(--font-title);
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
+    .select-label {
+      font-size: 0.75rem;
       color: var(--text-muted);
-      padding-left: 12px;
-      margin-bottom: 12px;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
     }
 
-    .step-item {
+    .select-control {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      outline: none;
+      cursor: pointer;
+      font-family: var(--font-ui);
+      transition: var(--transition);
+    }
+
+    .select-control:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: none;
+      font-family: var(--font-ui);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #0284c7);
+      color: white;
+      box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 6px 20px rgba(14, 165, 233, 0.6), 0 0 15px var(--primary-glow);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: rgba(31, 41, 55, 0.7);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(55, 65, 81, 0.8);
+      border-color: var(--text-secondary);
+      transform: translateY(-1px);
+    }
+
+    /* Simulation Board */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-header {
+      padding: 16px 20px;
+      background: rgba(15, 23, 42, 0.4);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-title {
+      font-family: var(--font-title);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 10px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      border: 1px solid transparent;
-      transition: all 0.2s ease;
+      gap: 10px;
+    }
+
+    /* Left Card: Terminal */
+    .terminal-container {
+      height: 480px;
+      background-color: var(--bg-terminal);
+      color: #38bdf8;
+      font-family: var(--font-code);
+      padding: 20px;
+      overflow-y: auto;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      border-bottom-left-radius: var(--radius);
+      border-bottom-right-radius: var(--radius);
       position: relative;
     }
 
-    .step-item:hover {
-      background: rgba(30, 41, 59, 0.3);
-      border-color: rgba(255, 255, 255, 0.02);
-    }
-
-    .step-item.active {
-      background: rgba(56, 189, 248, 0.08);
-      border-color: rgba(56, 189, 248, 0.2);
-    }
-
-    .step-item.active::after {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 25%;
-      height: 50%;
-      width: 3px;
-      background: var(--blue);
-      border-radius: 0 4px 4px 0;
-      box-shadow: 0 0 8px var(--blue);
-    }
-
-    .step-badge {
-      font-family: var(--font-code);
-      font-size: 11px;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
+    .terminal-line {
+      margin-bottom: 8px;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
+      gap: 8px;
+      opacity: 0.9;
+    }
+
+    .terminal-time {
+      color: var(--text-muted);
+      user-select: none;
       flex-shrink: 0;
     }
 
-    .step-item.completed .step-badge {
-      background: var(--green-glow);
-      border-color: var(--green);
-      color: var(--green);
+    .terminal-text {
+      word-break: break-all;
+      white-space: pre-wrap;
     }
 
-    .step-item.active .step-badge {
-      background: var(--blue-glow);
-      border-color: var(--blue);
-      color: var(--blue);
-      box-shadow: 0 0 8px var(--blue-glow);
+    .terminal-text.system { color: #f472b6; }
+    .terminal-text.step-header { color: #c084fc; font-weight: 600; margin-top: 10px; }
+    .terminal-text.agent-msg { color: #67e8f9; }
+    .terminal-text.success { color: #34d399; }
+    .terminal-text.warning { color: #fbbf24; }
+    .terminal-text.danger { color: #f87171; }
+
+    .terminal-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 15px;
+      background: var(--primary);
+      margin-left: 4px;
+      animation: blink 0.8s infinite;
+      vertical-align: middle;
     }
 
-    .step-info {
+    @keyframes blink {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 1; }
+    }
+
+    /* Right Card: Tabs & Visualizer */
+    .tab-bar {
       display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .step-name {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .step-item.active .step-name {
-      color: var(--text-primary);
-    }
-
-    .step-role {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-top: 1px;
-    }
-
-    /* Workspace */
-    .workspace {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      background: var(--bg-main);
-    }
-
-    /* Workspace Tabs */
-    .tabs-bar {
-      height: 48px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      background: rgba(10, 15, 29, 0.3);
-      padding: 0 20px;
-      align-items: flex-end;
+      background: rgba(15, 23, 42, 0.6);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0 10px;
     }
 
     .tab-btn {
-      height: 40px;
-      padding: 0 24px;
-      background: transparent;
+      background: none;
       border: none;
       color: var(--text-secondary);
-      font-size: 13px;
+      font-family: var(--font-ui);
+      font-size: 0.85rem;
       font-weight: 500;
+      padding: 12px 20px;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border-bottom: 2px solid transparent;
-      transition: all 0.2s ease;
+      position: relative;
+      transition: var(--transition);
     }
 
     .tab-btn:hover {
@@ -322,2084 +430,1981 @@
     }
 
     .tab-btn.active {
-      color: var(--blue);
-      border-bottom-color: var(--blue);
-      font-weight: 600;
+      color: var(--primary);
     }
 
-    /* Tab Contents */
-    .tab-content {
-      flex: 1;
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--primary);
+      box-shadow: 0 0 8px var(--primary);
+    }
+
+    .preview-body {
+      height: 480px;
+      background: rgba(15, 23, 42, 0.3);
+      position: relative;
       overflow: hidden;
-      display: none;
     }
 
-    .tab-content.active {
-      display: flex;
-    }
-
-    /* Panel: Overview */
-    .overview-panel {
-      padding: 24px;
-      overflow-y: auto;
+    .preview-pane {
       width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
       display: flex;
       flex-direction: column;
-      gap: 24px;
     }
 
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
+    .preview-pane.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Code Pane */
+    .code-viewer {
+      background: #090d16;
+      font-family: var(--font-code);
+      font-size: 0.8rem;
+      line-height: 1.5;
       padding: 20px;
-      transition: all 0.2s ease;
+      overflow: auto;
+      height: 100%;
+      color: #e2e8f0;
+      position: relative;
     }
 
-    .card:hover {
-      border-color: rgba(255, 255, 255, 0.05);
-      background-color: var(--bg-card-hover);
-    }
-
-    .overview-hero {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 20px;
-    }
-
-    @media (min-width: 1024px) {
-      .overview-hero {
-        grid-template-columns: 2fr 1fr;
-      }
-    }
-
-    .hero-title {
-      font-family: var(--font-title);
-      font-size: 24px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    .hero-desc {
-      font-size: 14px;
-      color: var(--text-secondary);
-      line-height: 1.6;
-      margin-bottom: 16px;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-
-    .stat-box {
-      background: rgba(30, 41, 59, 0.2);
-      border: 1px solid var(--border);
-      padding: 12px;
-      border-radius: 8px;
+    .code-line {
       display: flex;
-      flex-direction: column;
-      gap: 4px;
     }
 
-    .stat-label {
-      font-size: 11px;
+    .code-num {
+      width: 30px;
       color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      user-select: none;
+      text-align: right;
+      padding-right: 12px;
     }
 
-    .stat-val {
-      font-family: var(--font-title);
-      font-size: 20px;
-      font-weight: 600;
+    .code-content {
+      white-space: pre;
     }
 
-    .stat-val.highlight-green { color: var(--green); }
-    .stat-val.highlight-blue { color: var(--blue); }
-
-    /* Architecture / Flowchart Section */
-    .flowchart-section {
+    /* Solver Output / Visuals Pane */
+    .visuals-container {
+      padding: 24px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      overflow: auto;
     }
 
-    .section-title {
-      font-family: var(--font-title);
-      font-size: 18px;
-      font-weight: 600;
+    .visuals-placeholder {
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      text-align: center;
+    }
+
+    .visuals-image {
+      max-width: 90%;
+      max-height: 320px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      object-fit: contain;
+    }
+
+    .visuals-title {
+      font-size: 0.95rem;
+      font-weight: 500;
+      margin-top: 10px;
       color: var(--text-primary);
     }
 
-    .arch-flow {
+    /* Paper Pane */
+    .paper-frame {
       display: flex;
-      flex-direction: column;
-      gap: 16px;
-      position: relative;
-    }
-
-    @media (min-width: 768px) {
-      .arch-flow {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: stretch;
-      }
-    }
-
-    .flow-node {
-      flex: 1;
-      background: rgba(30, 41, 59, 0.2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px;
-      text-align: center;
-      position: relative;
-    }
-
-    .flow-node-title {
-      font-weight: 600;
-      font-size: 14px;
-      color: var(--blue);
-      margin-bottom: 8px;
-    }
-
-    .flow-node-desc {
-      font-size: 12px;
-      color: var(--text-secondary);
-      line-height: 1.4;
-    }
-
-    /* Panel: Live Run */
-    .run-panel {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 1fr;
+      flex-direction: row;
+      height: 100%;
       overflow: hidden;
     }
 
-    @media (min-width: 1024px) {
-      .run-panel {
-        grid-template-columns: 320px 1fr;
-      }
-    }
-
-    .run-controls {
-      border-right: 1px solid var(--border);
-      padding: 20px;
+    .paper-sidebar {
+      width: 140px;
+      background: rgba(10, 15, 29, 0.6);
+      border-right: 1px solid var(--border-color);
+      padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 10px;
       overflow-y: auto;
-      background: rgba(10, 15, 29, 0.15);
     }
 
-    .btn {
-      background: var(--blue);
-      color: #000;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 14px;
+    .paper-page-thumb {
+      width: 100%;
+      aspect-ratio: 1/1.41;
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      transition: all 0.2s ease;
-      width: 100%;
-    }
-
-    .btn:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-      background: transparent;
-      color: var(--text-primary);
-      border: 1px solid var(--border);
-    }
-
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: var(--text-secondary);
-    }
-
-    .run-status-card {
-      background: rgba(30, 41, 59, 0.2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .run-status-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-    }
-
-    .run-status-label {
-      color: var(--text-muted);
-    }
-
-    .run-status-val {
-      font-weight: 500;
-    }
-
-    .speed-selector {
-      display: flex;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-    }
-
-    .speed-btn {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: var(--text-secondary);
-      font-size: 11px;
-      font-weight: 500;
-      padding: 8px;
-      cursor: pointer;
-      transition: all 0.1s ease;
-    }
-
-    .speed-btn.active {
-      background: var(--border);
-      color: var(--blue);
-    }
-
-    /* Terminal Console */
-    .terminal-container {
-      display: flex;
-      flex-direction: column;
-      background: var(--bg-terminal);
-      overflow: hidden;
+      font-size: 0.75rem;
+      color: var(--bg-dark);
+      font-weight: bold;
+      transition: var(--transition);
+      opacity: 0.6;
       position: relative;
-    }
-
-    .terminal-header {
-      height: 36px;
-      background: rgba(10, 15, 29, 0.8);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 16px;
-      font-family: var(--font-code);
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .terminal-controls {
-      display: flex;
-      gap: 6px;
-    }
-
-    .term-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--border);
-    }
-    .term-dot.red { background: #ff5f56; }
-    .term-dot.yellow { background: #ffbd2e; }
-    .term-dot.green { background: #27c93f; }
-
-    .terminal-body {
-      flex: 1;
-      padding: 16px;
-      font-family: var(--font-code);
-      font-size: 12.5px;
-      line-height: 1.6;
-      color: #a7f3d0; /* emerald-200 */
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .term-line {
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
-
-    .term-sys { color: var(--text-muted); }
-    .term-cmd { color: var(--blue); }
-    .term-agent { color: var(--purple); }
-    .term-success { color: var(--green); }
-    .term-warning { color: var(--orange); }
-
-    /* Panel: Artifacts */
-    .artifacts-panel {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 240px 1fr;
       overflow: hidden;
     }
 
-    .file-tree {
-      border-right: 1px solid var(--border);
-      background: rgba(10, 15, 29, 0.2);
-      overflow-y: auto;
-      padding: 16px 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+    .paper-page-thumb.active {
+      opacity: 1;
+      border-color: var(--primary);
+      box-shadow: 0 0 8px var(--primary-glow);
     }
 
-    .file-tree-title {
-      font-family: var(--font-title);
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--text-muted);
-      padding-left: 12px;
-      margin-bottom: 8px;
-    }
-
-    .tree-folder {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .tree-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 13px;
-      cursor: pointer;
-      color: var(--text-secondary);
-      transition: all 0.1s ease;
-    }
-
-    .tree-item:hover {
-      background: rgba(255, 255, 255, 0.03);
-      color: var(--text-primary);
-    }
-
-    .tree-item.active {
-      background: rgba(56, 189, 248, 0.06);
-      color: var(--blue);
-    }
-
-    .tree-item.folder {
-      font-weight: 500;
-      color: var(--text-primary);
-    }
-
-    .tree-item-icon {
-      font-size: 14px;
-      opacity: 0.8;
-    }
-
-    .file-viewer {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      background: #090d16;
-    }
-
-    .viewer-header {
-      height: 40px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(10, 15, 29, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 16px;
-    }
-
-    .viewer-file-path {
-      font-family: var(--font-code);
-      font-size: 12px;
-      color: var(--text-secondary);
-    }
-
-    .viewer-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 24px;
-      color: var(--text-primary);
-      line-height: 1.7;
-      font-size: 14.5px;
-    }
-
-    /* Rendering Markdown inside viewer */
-    .md-render h1 {
-      font-family: var(--font-title);
-      font-size: 22px;
-      font-weight: 600;
-      margin-bottom: 16px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 8px;
-      color: var(--text-primary);
-    }
-
-    .md-render h2 {
-      font-family: var(--font-title);
-      font-size: 17px;
-      font-weight: 600;
-      margin-top: 24px;
-      margin-bottom: 12px;
-      color: var(--blue);
-    }
-
-    .md-render h3 {
-      font-family: var(--font-title);
-      font-size: 15px;
-      font-weight: 600;
-      margin-top: 16px;
-      margin-bottom: 8px;
-    }
-
-    .md-render p {
-      margin-bottom: 12px;
-      color: var(--text-secondary);
-    }
-
-    .md-render ul, .md-render ol {
-      margin-bottom: 16px;
-      padding-left: 20px;
-      color: var(--text-secondary);
-    }
-
-    .md-render li {
-      margin-bottom: 6px;
-    }
-
-    .md-render blockquote {
-      border-left: 3px solid var(--blue);
-      background: rgba(56, 189, 248, 0.03);
-      padding: 10px 16px;
-      margin-bottom: 16px;
-      border-radius: 0 8px 8px 0;
-      font-style: italic;
-    }
-
-    .md-render table {
+    .paper-page-thumb img {
       width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
-      font-size: 13px;
-    }
-
-    .md-render th, .md-render td {
-      border: 1px solid var(--border);
-      padding: 10px 12px;
-      text-align: left;
-    }
-
-    .md-render th {
-      background: rgba(30, 41, 59, 0.4);
-      color: var(--text-primary);
-      font-weight: 600;
-    }
-
-    .md-render tr:nth-child(even) {
-      background: rgba(255, 255, 255, 0.01);
-    }
-
-    /* LaTeX preview style */
-    .latex-split {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 20px;
       height: 100%;
+      object-fit: cover;
     }
 
-    @media (min-width: 1024px) {
-      .latex-split {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    .latex-code {
-      font-family: var(--font-code);
-      font-size: 12px;
-      background: #04060b;
-      padding: 16px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      overflow: auto;
-      white-space: pre;
-      color: var(--text-secondary);
-    }
-
-    .pdf-preview {
-      background: #f1f5f9;
-      border-radius: 8px;
-      border: 1px solid #cbd5e1;
-      padding: 40px;
-      color: #0f172a;
-      display: flex;
-      flex-direction: column;
+    .paper-content-view {
+      flex: 1;
+      padding: 24px;
+      background: #fafaf9;
+      color: #1c1917;
       overflow-y: auto;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-      font-family: 'STSong', 'SimSun', serif;
+      font-family: 'Times New Roman', 'SimSun', serif;
+      height: 100%;
+      line-height: 1.5;
     }
 
-    .pdf-title-zh {
-      font-size: 26px;
+    .paper-content-view h2 {
+      text-align: center;
+      margin-bottom: 8px;
+      font-size: 1.4rem;
+      font-weight: bold;
+    }
+
+    .paper-content-view h3 {
+      font-size: 1.1rem;
+      margin-top: 15px;
+      margin-bottom: 6px;
+      border-bottom: 1px solid #e7e5e4;
+      padding-bottom: 3px;
+    }
+
+    .paper-abstract-title {
+      font-weight: bold;
+      text-align: center;
+      margin: 10px 0 4px;
+    }
+
+    .paper-abstract-p {
+      text-indent: 2em;
+      font-size: 0.85rem;
+      margin-bottom: 10px;
+      text-align: justify;
+    }
+
+    .paper-math-formula {
+      text-align: center;
+      margin: 12px 0;
+      font-style: italic;
+      font-size: 0.95rem;
+    }
+
+    /* Pipeline Timeline Steps */
+    .section-title {
+      font-family: var(--font-title);
+      font-size: 1.75rem;
       font-weight: 700;
-      text-align: center;
-      margin-bottom: 12px;
-    }
-
-    .pdf-title-en {
-      font-size: 18px;
-      text-align: center;
       margin-bottom: 24px;
-      color: #475569;
+      text-align: center;
+      position: relative;
+      display: inline-block;
+      left: 50%;
+      transform: translateX(-50%);
     }
 
-    .pdf-meta {
-      display: flex;
-      justify-content: space-around;
-      border-top: 1px solid #94a3b8;
-      border-bottom: 1px solid #94a3b8;
-      padding: 10px 0;
-      font-size: 12px;
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 20%;
+      right: 20%;
+      height: 2px;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+    }
+
+    .pipeline-wrapper {
+      margin-top: 20px;
+      margin-bottom: 50px;
+    }
+
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
       margin-bottom: 30px;
     }
 
-    .pdf-abstract-title {
-      font-size: 16px;
-      font-weight: 700;
-      text-align: center;
-      margin-bottom: 12px;
-    }
-
-    .pdf-abstract-text {
-      font-size: 13px;
-      line-height: 1.8;
-      text-align: justify;
-      text-indent: 2em;
-    }
-
-    /* Image display in viewer */
-    .viewer-image-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-      height: 100%;
-      min-height: 350px;
-    }
-
-    .viewer-img {
-      max-width: 100%;
-      max-height: 400px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    }
-
-    .viewer-img-caption {
-      font-size: 13px;
-      color: var(--text-secondary);
-      max-width: 500px;
-      text-align: center;
-    }
-
-    /* Panel: Agent Hub */
-    .agents-panel {
-      padding: 24px;
-      overflow-y: auto;
-      width: 100%;
-    }
-
-    .agents-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 20px;
-    }
-
-    .agent-card {
+    .step-card {
       background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      transition: all 0.2s ease;
-    }
-
-    .agent-card:hover {
-      border-color: var(--blue);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px -8px var(--blue-glow);
-    }
-
-    .agent-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .agent-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
-      background: var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-    }
-
-    .agent-card:nth-child(1) .agent-icon { background: var(--blue-glow); color: var(--blue); }
-    .agent-card:nth-child(2) .agent-icon { background: var(--purple-glow); color: var(--purple); }
-    .agent-card:nth-child(3) .agent-icon { background: var(--orange-glow); color: var(--orange); }
-    .agent-card:nth-child(4) .agent-icon { background: var(--green-glow); color: var(--green); }
-    .agent-card:nth-child(5) .agent-icon { background: rgba(244, 63, 94, 0.15); color: var(--red); }
-    .agent-card:nth-child(6) .agent-icon { background: var(--blue-glow); color: var(--blue); }
-    .agent-card:nth-child(7) .agent-icon { background: var(--purple-glow); color: var(--purple); }
-
-    .agent-title {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .agent-name {
-      font-family: var(--font-title);
-      font-weight: 600;
-      font-size: 15px;
-    }
-
-    .agent-tag {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .agent-desc {
-      font-size: 12.5px;
-      color: var(--text-secondary);
-      line-height: 1.5;
-      flex-grow: 1;
-    }
-
-    .agent-meta {
-      display: flex;
-      justify-content: space-between;
-      border-top: 1px solid var(--border);
-      padding-top: 12px;
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    /* Modal / Popup for reviews */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(2, 6, 23, 0.85);
-      backdrop-filter: blur(8px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      padding: 16px;
-    }
-
-    .modal-overlay.active {
-      display: flex;
-    }
-
-    .modal-content {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      max-width: 600px;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
-      overflow: hidden;
-      animation: modalSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    @keyframes modalSlide {
-      from { opacity: 0; transform: scale(0.95) translateY(10px); }
-      to { opacity: 1; transform: scale(1) translateY(0); }
-    }
-
-    .modal-header {
-      padding: 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .modal-title {
-      font-family: var(--font-title);
-      font-size: 18px;
-      font-weight: 600;
-    }
-
-    .modal-body {
-      padding: 20px;
-      overflow-y: auto;
-      max-height: 350px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .modal-footer {
-      padding: 16px 20px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-      background: rgba(10, 15, 29, 0.2);
-    }
-
-    /* Style for stream selector inside modal */
-    .stream-option {
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-color);
       border-radius: 10px;
       padding: 16px;
       cursor: pointer;
+      transition: var(--transition);
+      position: relative;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      transition: all 0.2s ease;
+      gap: 8px;
     }
 
-    .stream-option:hover {
+    .step-card:hover {
       background: var(--bg-card-hover);
-      border-color: var(--text-secondary);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
     }
 
-    .stream-option.recommended {
-      border-color: var(--blue);
-      background: rgba(56, 189, 248, 0.02);
+    .step-card.active {
+      border-color: var(--primary);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);
+      background: rgba(31, 41, 55, 0.9);
     }
 
-    .stream-option.recommended:hover {
-      background: rgba(56, 189, 248, 0.05);
+    .step-card.completed {
+      border-color: var(--success);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.1);
     }
 
-    .stream-option.selected {
-      border-color: var(--green);
-      background: rgba(16, 185, 129, 0.06);
+    .step-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      width: fit-content;
+      text-transform: uppercase;
     }
 
-    .stream-header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    .step-badge.setup { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .step-badge.modeling { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+    .step-badge.solving { background: rgba(236, 72, 153, 0.2); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.3); }
+    .step-badge.writing { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
 
-    .stream-name-tag {
+    .step-title {
       font-weight: 600;
-      font-size: 14px;
+      font-size: 0.9rem;
       color: var(--text-primary);
     }
 
-    .stream-badge {
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      background: var(--blue-glow);
-      color: var(--blue);
+    .step-desc {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .step-status-indicator {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: var(--text-muted);
+    }
+
+    .step-card.active .step-status-indicator {
+      background-color: var(--primary);
+      box-shadow: 0 0 10px var(--primary);
+    }
+
+    .step-card.completed .step-status-indicator {
+      background-color: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    /* Step Details Viewer */
+    .step-details-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 50px;
+      display: none;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 30px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    @media (max-width: 768px) {
+      .step-details-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .step-details-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .details-title-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .details-name {
+      font-family: var(--font-title);
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+
+    .details-section-title {
+      font-size: 0.8rem;
       text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .details-text {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .details-role-box {
+      background: rgba(31, 41, 55, 0.4);
+      border: 1px solid var(--border-color);
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+
+    .details-role-box strong {
+      color: var(--primary);
+    }
+
+    .details-files {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .file-tag {
+      font-family: var(--font-code);
+      font-size: 0.8rem;
+      background: rgba(17, 24, 39, 0.8);
+      border: 1px solid var(--border-color);
+      padding: 4px 10px;
+      border-radius: 4px;
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+    }
+
+    .file-tag::before {
+      content: '📄';
+      font-size: 0.75rem;
+    }
+
+    .step-details-prompt {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .prompt-viewer {
+      background: #090d16;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 16px;
+      font-family: var(--font-code);
+      font-size: 0.8rem;
+      color: #93c5fd;
+      overflow-y: auto;
+      max-height: 250px;
+      white-space: pre-wrap;
+    }
+
+    /* Core Features Grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: 50px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 30px 24px;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .feature-card:hover {
+      border-color: var(--secondary);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 24px rgba(168, 85, 247, 0.15);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--secondary-glow);
+      border: 1px solid var(--secondary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: #c084fc;
+    }
+
+    .feature-card h3 {
+      font-family: var(--font-title);
+      font-size: 1.2rem;
       font-weight: 600;
     }
 
-    .stream-option.recommended .stream-badge {
-      background: var(--purple-glow);
-      color: var(--purple);
-    }
-
-    .stream-desc {
-      font-size: 12px;
+    .feature-card p {
       color: var(--text-secondary);
+      font-size: 0.9rem;
       line-height: 1.5;
     }
 
-    .text-area-input {
-      width: 100%;
-      height: 120px;
-      background: var(--bg-terminal);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      color: var(--text-primary);
-      font-family: var(--font-ui);
-      font-size: 13px;
-      resize: none;
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border-color);
+      padding: 30px 0;
+      margin-top: 60px;
     }
 
-    .text-area-input:focus {
-      outline: none;
-      border-color: var(--blue);
+    footer a {
+      color: var(--text-secondary);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      color: var(--primary);
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Navigation Header -->
   <header>
     <div class="brand">
-      <div class="brand-logo"></div>
-      <span class="brand-name">Modeling Factory</span>
-      <span class="brand-tagline">多智能体数学建模学术论文流水线</span>
+      <div class="brand-logo">MF</div>
+      <div class="brand-title">Modeling Factory</div>
     </div>
     
-    <div class="system-status">
+    <div class="nav-actions">
       <div class="status-badge">
-        <div class="status-dot"></div>
-        <span>流水线引擎: 运行就绪</span>
+        <span class="status-dot" id="system-status-dot"></span>
+        <span id="system-status-text">就绪 (Runner Idle)</span>
       </div>
+      
+      <a href="https://github.com/xhxmt/mathmodel-factory" target="_blank" class="btn-github">
+        <svg height="18" viewBox="0 0 16 16" width="18" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+        GitHub 仓库
+      </a>
     </div>
   </header>
 
-  <!-- Main App Layout -->
-  <div class="app-container">
+  <div class="container">
     
-    <!-- Sidebar - Timeline Stepper -->
-    <aside class="sidebar">
-      <div class="sidebar-title">流水线步骤 (Steps)</div>
+    <!-- Hero Section -->
+    <section class="hero">
+      <h1>多智能体数学建模流水线</h1>
+      <p>一个端到端的本地多智能体协作框架，为全国大学生数学建模竞赛（CUMCM）及 MCM/ICM 赛事提供完整的文献检索、并行建模、数学求解、代码校验和 LaTeX 论文自动排版流程。</p>
       
-      <div class="step-item active" id="step-0" onclick="selectStep(0)">
-        <div class="step-badge">0</div>
-        <div class="step-info">
-          <span class="step-name">问题解析与规范定义</span>
-          <span class="step-role">ParserAgent</span>
+      <div class="controls-panel">
+        <div class="select-group">
+          <span class="select-label">选择建模题目 / Dataset</span>
+          <select class="select-control" id="problem-select">
+            <option value="cumcm_2024b">CUMCM 2024 Problem B - 定日镜场优化设计</option>
+            <option value="mcm_2024b">MCM 2024 Problem B - 网球赛事势头分析</option>
+          </select>
         </div>
-      </div>
-      
-      <div class="step-item" id="step-1" onclick="selectStep(1)">
-        <div class="step-badge">1</div>
-        <div class="step-info">
-          <span class="step-name">文献调研与可行流构建</span>
-          <span class="step-role">ResearcherAgent</span>
-        </div>
-      </div>
-      
-      <div class="step-item" id="step-2" onclick="selectStep(2)">
-        <div class="step-badge">2</div>
-        <div class="step-info">
-          <span class="step-name">多路并行建模设计与打样</span>
-          <span class="step-role">Modeler/Solver</span>
-        </div>
-      </div>
-      
-      <div class="step-item" id="step-3" onclick="selectStep(3)">
-        <div class="step-badge">3</div>
-        <div class="step-info">
-          <span class="step-name">方案评选 (人机协同关卡)</span>
-          <span class="step-role">DeciderAgent</span>
-        </div>
-      </div>
-      
-      <div class="step-item" id="step-4" onclick="selectStep(4)">
-        <div class="step-badge">4</div>
-        <div class="step-info">
-          <span class="step-name">主模型扩展构建与符号对齐</span>
-          <span class="step-role">ModelerAgent</span>
-        </div>
-      </div>
-      
-      <div class="step-item" id="step-5" onclick="selectStep(5)">
-        <div class="step-badge">5</div>
-        <div class="step-info">
-          <span class="step-name">模型求解与日志存盘</span>
-          <span class="step-role">SolverAgent</span>
-        </div>
-      </div>
-      
-      <div class="step-item" id="step-6" onclick="selectStep(6)">
-        <div class="step-badge">6</div>
-        <div class="step-info">
-          <span class="step-name">灵敏度扰动与鲁棒检验</span>
-          <span class="step-role">ModelerAgent</span>
-        </div>
-      </div>
-      
-      <div class="step-item" id="step-7" onclick="selectStep(7)">
-        <div class="step-badge">7</div>
-        <div class="step-info">
-          <span class="step-name">模型自评价与局限剖析</span>
-          <span class="step-role">ModelerAgent</span>
-        </div>
-      </div>
-      
-      <div class="step-item" id="step-8" onclick="selectStep(8)">
-        <div class="step-badge">8</div>
-        <div class="step-info">
-          <span class="step-name">可视化图表统一化美化</span>
-          <span class="step-role">SolverAgent</span>
-        </div>
-      </div>
-      
-      <div class="step-item" id="step-9" onclick="selectStep(9)">
-        <div class="step-badge">9</div>
-        <div class="step-info">
-          <span class="step-name">LaTeX论文初稿撰写</span>
-          <span class="step-role">ModelerAgent</span>
-        </div>
-      </div>
-      
-      <div class="step-item" id="step-10" onclick="selectStep(10)">
-        <div class="step-badge">10</div>
-        <div class="step-info">
-          <span class="step-name">数值一致性交叉审计</span>
-          <span class="step-role">ReviewerAgent</span>
-        </div>
-      </div>
-      
-      <div class="step-item" id="step-11" onclick="selectStep(11)">
-        <div class="step-badge">11</div>
-        <div class="step-info">
-          <span class="step-name">建设性审稿意见产出</span>
-          <span class="step-role">CriticAgent</span>
-        </div>
-      </div>
-      
-      <div class="step-item" id="step-12" onclick="selectStep(12)">
-        <div class="step-badge">12</div>
-        <div class="step-info">
-          <span class="step-name">论文修订与问题销账</span>
-          <span class="step-role">ModelerAgent</span>
-        </div>
-      </div>
-      
-      <div class="step-item" id="step-13" onclick="selectStep(13)">
-        <div class="step-badge">13</div>
-        <div class="step-info">
-          <span class="step-name">模拟评委多维度打分</span>
-          <span class="step-role">JudgeAgent</span>
-        </div>
-      </div>
-      
-      <div class="step-item" id="step-14" onclick="selectStep(14)">
-        <div class="step-badge">14</div>
-        <div class="step-info">
-          <span class="step-name">摘要精打细磨 (人机协同)</span>
-          <span class="step-role">ModelerAgent</span>
-        </div>
-      </div>
-      
-      <div class="step-item" id="step-15" onclick="selectStep(15)">
-        <div class="step-badge">15</div>
-        <div class="step-info">
-          <span class="step-name">表格规范与去AI化润色</span>
-          <span class="step-role">ReviewerAgent</span>
-        </div>
-      </div>
-      
-      <div class="step-item" id="step-16" onclick="selectStep(16)">
-        <div class="step-badge">16</div>
-        <div class="step-info">
-          <span class="step-name">最终编译排版与打包</span>
-          <span class="step-role">SolverAgent</span>
-        </div>
-      </div>
-    </aside>
-
-    <!-- Center Workspace -->
-    <main class="workspace">
-      
-      <!-- Tabs Bar -->
-      <div class="tabs-bar">
-        <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">概览与架构</button>
-        <button class="tab-btn" data-tab="run" onclick="switchTab('run')">流水线仿真</button>
-        <button class="tab-btn" data-tab="artifacts" onclick="switchTab('artifacts')">产物浏览器</button>
-        <button class="tab-btn" data-tab="agents" onclick="switchTab('agents')">智能体群</button>
-      </div>
-
-      <!-- Tab Content: Overview -->
-      <div class="tab-content active" id="overview-content">
-        <div class="overview-panel">
-          
-          <div class="overview-hero">
-            <!-- Left block -->
-            <div class="card">
-              <h1 class="hero-title">数学建模论文流水线 (Modeling Factory)</h1>
-              <p class="hero-desc">
-                本系统是专为全国大学生数学建模竞赛 (CUMCM) 和美赛 (MCM/ICM) 设计的多智能体自主协作论文流水线。它通过 17 个严格定义的步骤，从赛题 PDF 解析开始，到最终排版好的 LaTeX 论文 PDF 和代码提交包输出，实现了端到端、具备自我审计与模拟评委打分的自动化流转方案。
-              </p>
-              <div class="stats-grid">
-                <div class="stat-box">
-                  <span class="stat-label">竞赛时间预算</span>
-                  <span class="stat-val highlight-blue">74 小时 (国赛标准)</span>
-                </div>
-                <div class="stat-box">
-                  <span class="stat-label">历史平均得分</span>
-                  <span class="stat-val highlight-green">86.4 / 100 (评委优级)</span>
-                </div>
-                <div class="stat-box">
-                  <span class="stat-label">协同智能体数</span>
-                  <span class="stat-val">7 个专业角色</span>
-                </div>
-                <div class="stat-box">
-                  <span class="stat-label">流水线节点</span>
-                  <span class="stat-val">17 个关联工序</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Right block -->
-            <div class="card" style="display: flex; flex-direction: column; justify-content: center; gap: 12px;">
-              <h2 class="section-title">核心设计哲学</h2>
-              <p class="hero-desc" style="font-size: 13px; margin-bottom: 0;">
-                <strong>以文件状态驱动</strong>：每个步骤的输入输出全部在磁盘上落盘，避免了长上下文智能体丢失状态，支持随时暂停与断点续跑。<br><br>
-                <strong>双人机协同卡点</strong>：在「算法方案评选 (Step 3)」和「摘要润色 (Step 14)」两大最关键节点，自动感知人类输入的决策意图。
-              </p>
-            </div>
-          </div>
-
-          <!-- Architecture Flowchart Section -->
-          <div class="flowchart-section">
-            <h2 class="section-title">论文流水线架构流向</h2>
-            <div class="arch-flow">
-              <div class="flow-node">
-                <div class="flow-node-title">1. 问题解析与分解</div>
-                <div class="flow-node-desc">ParserAgent 提取 PDF 中的难点、术语与硬性限制，划定 74 小时规划方案。</div>
-              </div>
-              <div class="flow-node" style="border-left-color: var(--blue);">
-                <div class="flow-node-title">2. 多方案并行验证</div>
-                <div class="flow-node-desc">提出 MILP 规划、TOPSIS 及抽样估计等多条流，运行 toy solve 小范围打样。</div>
-              </div>
-              <div class="flow-node" style="border-left-color: var(--purple);">
-                <div class="flow-node-title">3. 模型精建与求解</div>
-                <div class="flow-node-desc">大-M法线性化，Gurobi 引擎求解。做灵敏度 perturbations 并统一图表配色。</div>
-              </div>
-              <div class="flow-node" style="border-left-color: var(--green);">
-                <div class="flow-node-title">4. 三级审计与润色</div>
-                <div class="flow-node-desc">数值对帐审计、评委多维度打分、摘要打磨、LaTeX 排版，打出 zip 提交包。</div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- Tab Content: Live Run -->
-      <div class="tab-content" id="run-content">
-        <div class="run-panel">
-          
-          <!-- Run Controls sidebar -->
-          <div class="run-controls">
-            <h2 class="section-title" style="font-size: 16px;">控制台</h2>
-            
-            <button class="btn" id="start-btn" onclick="startSimulation()">
-              <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M11.596 8.697l-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
-              </svg>
-              一键运行流水线
-            </button>
-            
-            <button class="btn btn-secondary" id="reset-btn" onclick="resetSimulation()" disabled>
-              重置状态
-            </button>
-            
-            <div class="run-status-card">
-              <div class="run-status-row">
-                <span class="run-status-label">当前运行步骤:</span>
-                <span class="run-status-val" id="status-step-name">-</span>
-              </div>
-              <div class="run-status-row">
-                <span class="run-status-label">当前角色:</span>
-                <span class="run-status-val" id="status-role">-</span>
-              </div>
-              <div class="run-status-row">
-                <span class="run-status-label">流水线状态:</span>
-                <span class="run-status-val" id="status-state" style="color: var(--text-muted);">IDLE</span>
-              </div>
-            </div>
-
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-              <span class="run-status-label" style="font-size: 12px;">仿真步进速度</span>
-              <div class="speed-selector">
-                <button class="speed-btn" id="speed-1" onclick="setSpeed(1000)">1x</button>
-                <button class="speed-btn active" id="speed-2" onclick="setSpeed(300)">5x</button>
-                <button class="speed-btn" id="speed-3" onclick="setSpeed(20)">极速</button>
-              </div>
-            </div>
-
-            <div style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
-              * 仿真运行时会在关键节点弹出「人机协同审核」弹窗，您可以参与智能体决策。
-            </div>
-          </div>
-
-          <!-- Terminal -->
-          <div class="terminal-container">
-            <div class="terminal-header">
-              <span>SYSTEM TERMINAL - cumcm2024b</span>
-              <div class="terminal-controls">
-                <div class="term-dot green"></div>
-                <div class="term-dot yellow"></div>
-                <div class="term-dot red"></div>
-              </div>
-            </div>
-            <div class="terminal-body" id="terminal-output">
-              <div class="term-line term-sys">[SYSTEM] Ready. Click "一键运行流水线" to simulate modeling pipeline.</div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- Tab Content: Artifacts -->
-      <div class="tab-content" id="artifacts-content">
-        <div class="artifacts-panel">
-          
-          <!-- File Explorer tree -->
-          <div class="file-tree">
-            <div class="file-tree-title">工程文件目录</div>
-            
-            <div class="tree-item folder" onclick="toggleFolder('folder-prob')">
-              <span class="tree-item-icon">📁</span>problem/
-            </div>
-            <div class="tree-folder" id="folder-prob">
-              <div class="tree-item" onclick="openFile('problem_brief.md')">
-                <span class="tree-item-icon">📄</span>problem_brief.md
-              </div>
-              <div class="tree-item" onclick="openFile('feasibility_constraints.md')">
-                <span class="tree-item-icon">📄</span>feasibility_constraints.md
-              </div>
-            </div>
-
-            <div class="tree-item folder" onclick="toggleFolder('folder-research')">
-              <span class="tree-item-icon">📁</span>research/
-            </div>
-            <div class="tree-folder" id="folder-research">
-              <div class="tree-item" onclick="openFile('research_brief.md')">
-                <span class="tree-item-icon">📄</span>research_brief.md
-              </div>
-              <div class="tree-item" onclick="openFile('viable_streams.md')">
-                <span class="tree-item-icon">📄</span>viable_streams.md
-              </div>
-              <div class="tree-item" onclick="openFile('viability_gate.md')">
-                <span class="tree-item-icon">📄</span>viability_gate.md
-              </div>
-            </div>
-
-            <div class="tree-item folder" onclick="toggleFolder('folder-models')">
-              <span class="tree-item-icon">📁</span>models/
-            </div>
-            <div class="tree-folder" id="folder-models">
-              <div class="tree-item" onclick="openFile('chosen_method.md')">
-                <span class="tree-item-icon">📄</span>chosen_method.md
-              </div>
-              <div class="tree-item" onclick="openFile('model.md')">
-                <span class="tree-item-icon">📄</span>model.md
-              </div>
-              <div class="tree-item" onclick="openFile('symbol_table.md')">
-                <span class="tree-item-icon">📄</span>symbol_table.md
-              </div>
-              <div class="tree-item" onclick="openFile('assumption_ledger.md')">
-                <span class="tree-item-icon">📄</span>assumption_ledger.md
-              </div>
-            </div>
-
-            <div class="tree-item folder" onclick="toggleFolder('folder-results')">
-              <span class="tree-item-icon">📁</span>results/
-            </div>
-            <div class="tree-folder" id="folder-results">
-              <div class="tree-item" onclick="openFile('solve_log.md')">
-                <span class="tree-item-icon">📄</span>solve_log.md
-              </div>
-              <div class="tree-item" onclick="openFile('fig-tornado.png')">
-                <span class="tree-item-icon">📈</span>fig-tornado.png
-              </div>
-              <div class="tree-item" onclick="openFile('fig-scenario.png')">
-                <span class="tree-item-icon">📈</span>fig-scenario.png
-              </div>
-              <div class="tree-item" onclick="openFile('fig-robust.png')">
-                <span class="tree-item-icon">📈</span>fig-robust.png
-              </div>
-              <div class="tree-item" onclick="openFile('fig-ahp.png')">
-                <span class="tree-item-icon">📈</span>fig-ahp.png
-              </div>
-            </div>
-
-            <div class="tree-item folder" onclick="toggleFolder('folder-paper')">
-              <span class="tree-item-icon">📁</span>paper/
-            </div>
-            <div class="tree-folder" id="folder-paper">
-              <div class="tree-item" onclick="openFile('paper_draft.tex')">
-                <span class="tree-item-icon">📄</span>paper_draft.tex
-              </div>
-              <div class="tree-item" onclick="openFile('abstract_draft.md')">
-                <span class="tree-item-icon">📄</span>abstract_draft.md
-              </div>
-              <div class="tree-item" onclick="openFile('code_review.md')">
-                <span class="tree-item-icon">📄</span>code_review.md
-              </div>
-              <div class="tree-item" onclick="openFile('judge_evaluation.md')">
-                <span class="tree-item-icon">📄</span>judge_evaluation.md
-              </div>
-            </div>
-
-            <div class="tree-item" onclick="openFile('checkpoint.md')">
-              <span class="tree-item-icon">📄</span>checkpoint.md
-            </div>
-            <div class="tree-item" onclick="openFile('audit_issue_ledger.md')">
-              <span class="tree-item-icon">📄</span>audit_issue_ledger.md
-            </div>
-          </div>
-
-          <!-- File Viewer body -->
-          <div class="file-viewer">
-            <div class="viewer-header">
-              <div class="viewer-file-path" id="current-filepath">请选择一个文件进行预览</div>
-            </div>
-            <div class="viewer-body" id="viewer-content">
-              <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted);">
-                <span style="font-size: 48px; margin-bottom: 16px;">📂</span>
-                点击左侧文件树可以即时预览数学建模流水线产物
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- Tab Content: Agents -->
-      <div class="tab-content" id="agents-content">
-        <div class="agents-panel">
-          <div class="agents-grid">
-            
-            <div class="agent-card">
-              <div class="agent-header">
-                <div class="agent-icon">🔍</div>
-                <div class="agent-title">
-                  <span class="agent-name">ParserAgent</span>
-                  <span class="agent-tag">问题分析大师</span>
-                </div>
-              </div>
-              <p class="agent-desc">负责使用 MinerU 将赛题 PDF 转换为 Markdown，提炼赛题中的硬性要求、判定边界、数据集目录，并划定 74 小时的工作流调度方案。</p>
-              <div class="agent-meta">
-                <span>主力模型: Gemini 3.5 Pro</span>
-                <span>工具: MinerU Parser</span>
-              </div>
-            </div>
-
-            <div class="agent-card">
-              <div class="agent-header">
-                <div class="agent-icon">📚</div>
-                <div class="agent-title">
-                  <span class="agent-name">ResearcherAgent</span>
-                  <span class="agent-tag">方法挖掘专家</span>
-                </div>
-              </div>
-              <p class="agent-desc">负责针对赛题背景检索学术期刊、匹配团队内置的方法库（Method Library），搭建 3-5 条合理可行的算法建模路径并评估其可行性。</p>
-              <div class="agent-meta">
-                <span>主力模型: Gemini 3.5 Pro</span>
-                <span>工具: Search/MethodLib</span>
-              </div>
-            </div>
-
-            <div class="agent-card">
-              <div class="agent-header">
-                <div class="agent-icon">📐</div>
-                <div class="agent-title">
-                  <span class="agent-name">ModelerAgent</span>
-                  <span class="agent-tag">主建模数学家</span>
-                </div>
-              </div>
-              <p class="agent-desc">编写模型数学核心公式。将定性问题表达为严格的规划模型（如 MILP、拓扑图、SPRT、吸收马尔可夫链等），产出公式、决策变量表及逻辑假设。</p>
-              <div class="agent-meta">
-                <span>主力模型: Claude 3.5 Sonnet</span>
-                <span>工具: LaTeX / Sympy</span>
-              </div>
-            </div>
-
-            <div class="agent-card">
-              <div class="agent-header">
-                <div class="agent-icon">💻</div>
-                <div class="agent-title">
-                  <span class="agent-name">SolverAgent</span>
-                  <span class="agent-tag">求解代码执行器</span>
-                </div>
-              </div>
-              <p class="agent-desc">将数学公式转化为 Python 求解脚本，调用外部 Gurobi、SciPy 求解器，清洗数据、生成高度可读的可视化图表，并验证数值敛散性。</p>
-              <div class="agent-meta">
-                <span>主力模型: Gemini 3.5 Flash</span>
-                <span>工具: Python/Gurobi/Matplotlib</span>
-              </div>
-            </div>
-
-            <div class="agent-card">
-              <div class="agent-header">
-                <div class="agent-icon">⚖️</div>
-                <div class="agent-title">
-                  <span class="agent-name">ReviewerAgent</span>
-                  <span class="agent-tag">学术严谨度审计</span>
-                </div>
-              </div>
-              <p class="agent-desc">在 Step 10 负责将论文中引用的每一个数字与 Gurobi 求解日志中的 JSON 产物进行强验证；并在 Step 15 负责把关 LaTeX 引用、表格排版与去AI腔润色。</p>
-              <div class="agent-meta">
-                <span>主力模型: Gemini 3.5 Pro</span>
-                <span>工具: Regex Checker / Bibtex</span>
-              </div>
-            </div>
-
-            <div class="agent-card">
-              <div class="agent-header">
-                <div class="agent-icon">🛑</div>
-                <div class="agent-title">
-                  <span class="agent-name">CriticAgent</span>
-                  <span class="agent-tag">刁钻评审人</span>
-                </div>
-              </div>
-              <p class="agent-desc">在建模打样和论文初稿生成后，负责无情查找缺陷，给各步骤挑刺，产出 BLOCKING / MAJOR / MINOR 级别的意见账单，挂牌督办修订工作。</p>
-              <div class="agent-meta">
-                <span>主力模型: Claude 3.5 Sonnet</span>
-                <span>工具: Audit Issue Ledger</span>
-              </div>
-            </div>
-
-            <div class="agent-card">
-              <div class="agent-header">
-                <div class="agent-icon">🎓</div>
-                <div class="agent-title">
-                  <span class="agent-name">JudgeAgent</span>
-                  <span class="agent-tag">国赛模拟评委</span>
-                </div>
-              </div>
-              <p class="agent-desc">模拟 3 名不同偏好的国赛评委（偏好建模、偏好求解、偏好说服力），依照官方细则多维度为论文评分，形成加权总分和具体的修改意见。</p>
-              <div class="agent-meta">
-                <span>主力模型: Gemini 3.5 Pro</span>
-                <span>工具: Rubric Matcher</span>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-
-    </main>
-
-  </div>
-
-  <!-- Interactive Modal for Human Gate Step 3 -->
-  <div class="modal-overlay" id="modal-step3">
-    <div class="modal-content">
-      <div class="modal-header">
-        <span style="font-size: 24px;">🚨</span>
-        <h3 class="modal-title">人机协同决策关卡: Step 3 建模方案评选</h3>
-      </div>
-      <div class="modal-body">
-        <p style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 8px;">
-          流水线已经在 Step 2 针对 3 个备选流完成了小规模求解验证 (Toy Solves)。现在需要人类审核确定最终的主线建模方案。
-        </p>
         
-        <div class="stream-option" onclick="selectStream(1)">
-          <div class="stream-header-row">
-            <span class="stream-name-tag">Stream m1: 端到端 MILP (混合整数规划)</span>
-            <span class="stream-badge">保守安全</span>
-          </div>
-          <span class="stream-desc">全过程使用大-M线性化展开期望利润，利用 Gurobi 求解。方法常见，稳定不易出错，但缺乏比赛新颖性。</span>
+        <div class="select-group">
+          <span class="select-label">模拟倍速 / Speed</span>
+          <select class="select-control" id="speed-select">
+            <option value="1">1.0x 正常速度</option>
+            <option value="2">2.0x 快速</option>
+            <option value="5">5.0x 极速</option>
+          </select>
         </div>
+        
+        <button class="btn btn-primary" id="btn-run-sim">
+          <span id="run-btn-icon">▶</span>
+          <span id="run-btn-text">开始运行流水线</span>
+        </button>
+        
+        <button class="btn btn-secondary" id="btn-reset-sim" disabled>
+          重置
+        </button>
+      </div>
+    </section>
 
-        <div class="stream-option" onclick="selectStream(2)">
-          <div class="stream-header-row">
-            <span class="stream-name-tag">Stream m2: TOPSIS 决策排序 + AHP 权重</span>
-            <span class="stream-badge">强可解释性</span>
+    <!-- Simulation Board -->
+    <section class="dashboard-grid">
+      
+      <!-- Left Card: Terminal Logs -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>💻</span> 智能体执行流终端日志 (run_paper.sh)
           </div>
-          <span class="stream-desc">列出所有 16 种决策组合并枚举指标，用 TOPSIS 归一化排序。直观易懂，但在大工序规模下容易维度爆炸。</span>
+          <div style="font-size: 0.8rem; color: var(--text-muted);" id="sim-progress-text">
+            进度: 0 / 16 步
+          </div>
         </div>
-
-        <div class="stream-option recommended" id="stream-m3-opt" onclick="selectStream(3)">
-          <div class="stream-header-row">
-            <span class="stream-name-tag">Stream m3: SPRT 抽样 + 吸收马尔可夫链 + 鲁棒优化</span>
-            <span class="stream-badge" style="background-color: var(--green-glow); color: var(--green);">推荐创新</span>
+        <div class="terminal-container" id="terminal-log-box">
+          <div class="terminal-line">
+            <span class="terminal-time">[14:53:18]</span>
+            <span class="terminal-text system">== Modeling Factory CLI 初始化完毕 ==</span>
           </div>
-          <span class="stream-desc">使用 Wald SPRT 精简检测量，以吸收马尔可夫链刻画拆解回收的大循环闭式解，利用区间鲁棒重构第四问。</span>
+          <div class="terminal-line">
+            <span class="terminal-time">[14:53:18]</span>
+            <span class="terminal-text">当前状态: 准备就绪。请在上方选择题目，点击“开始运行流水线”。</span>
+          </div>
+          <!-- Lines will be dynamically appended here -->
+          <span class="terminal-cursor"></span>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn" style="width: auto; background-color: var(--green);" onclick="submitStep3Decision()">确定方案并继续</button>
+
+      <!-- Right Card: Artifact Previews -->
+      <div class="card">
+        <div class="tab-bar">
+          <button class="tab-btn active" data-tab="code">🖥️ 求解程序 (Python)</button>
+          <button class="tab-btn" data-tab="visuals">📊 优化分析图表</button>
+          <button class="tab-btn" data-tab="paper">📄 LaTeX 论文预览</button>
+        </div>
+        
+        <div class="preview-body">
+          
+          <!-- Tab 1: Code View -->
+          <div class="preview-pane active" id="pane-code">
+            <div class="code-viewer" id="code-box">
+              <div class="code-line">
+                <span class="code-num">1</span>
+                <span class="code-content" style="color: var(--text-muted); font-style: italic;"># 等待求解智能体编写模型程序...</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: Visuals View -->
+          <div class="preview-pane" id="pane-visuals">
+            <div class="visuals-container" id="visuals-box">
+              <div class="visuals-placeholder">
+                <span>📈</span>
+                <p>求解器图表将在管道进入【求解建模】和【敏感性分析】阶段时渲染</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 3: Paper PDF View -->
+          <div class="preview-pane" id="pane-paper">
+            <div class="paper-frame">
+              <div class="paper-sidebar" id="paper-thumbs-box">
+                <div class="paper-page-thumb active">
+                  <span style="font-size: 1.5rem;">📃</span>
+                </div>
+              </div>
+              <div class="paper-content-view" id="paper-doc-box">
+                <div style="color: var(--text-muted); text-align: center; margin-top: 100px;">
+                  <span style="font-size: 3rem;">📄</span>
+                  <p style="margin-top: 15px; font-family: var(--font-ui)">正在等待第 9 步 (论文起草) 自动撰写 LaTeX 论文...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
-    </div>
+
+    </section>
+
+    <!-- Pipeline Timeline Grid -->
+    <h2 class="section-title">16 步多智能体建模工作流契约</h2>
+    <section class="pipeline-wrapper">
+      <div class="pipeline-grid" id="pipeline-steps-grid">
+        <!-- 17 steps dynamically created here -->
+      </div>
+      
+      <!-- Step details output box -->
+      <div class="step-details-container" id="step-details-panel">
+        <div class="step-details-meta">
+          <div class="details-title-row">
+            <span class="step-badge" id="details-badge">SETUP</span>
+            <div class="details-name" id="details-title">Step 0: 问题解析</div>
+          </div>
+          <div class="details-role-box">
+            <span>负责智能体角色:</span> <strong id="details-agent-role">PDF提取专员</strong>
+          </div>
+          <div>
+            <div class="details-section-title">步骤说明</div>
+            <div class="details-text" id="details-description">解析竞赛PDF，提取干净的文本与公式。</div>
+          </div>
+          <div>
+            <div class="details-section-title">输入 / 输出文件契约</div>
+            <div class="details-files" id="details-files-io">
+              <!-- file tags go here -->
+            </div>
+          </div>
+        </div>
+        <div class="step-details-prompt">
+          <div class="details-section-title">当前步骤 Agent 核心 System Prompt 模版</div>
+          <div class="prompt-viewer" id="details-prompt-view">
+            <!-- prompt markup -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features and Highlights Section -->
+    <h2 class="section-title">核心设计亮点 & 智能校验机制</h2>
+    <section class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⛓️</div>
+        <h3>16步工作流状态机</h3>
+        <p>独创的 16 步流程控制契约，状态完全落地为本地文件系统状态。任何中断（如代码执行错误、人类介入审核）均支持利用 <code>run_paper.sh --infer-step</code> 无缝断点续传。</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <h3>双重一致性门禁 (Gate 1 & 2)</h3>
+        <p>多 Agent 协作系统最大的痛点是数值不一致。系统在第 10 步和第 13 步设置了严苛的门禁校验：自动提取 Python 运行日志、JSON 结果、LaTeX 论文表格，进行三角交叉核对，数值不符时自动打回重写。</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>异步并行求解调度</h3>
+        <p>通过独立包装器实现 Python、Julia、Matlab、Gurobi 等求解环境的异步提交 (<code>solver_submit.sh</code>)。各阶段智能体可同时探索多套数学模型方案，最后根据模拟评阅分数收敛至最佳解。</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🖋️</div>
+        <h3>高校 LaTeX 规范化编译</h3>
+        <p>自动调用 <code>compile_paper.sh</code> 工具链，根据所选比赛类型（国赛/美赛）加载对应的 LaTeX 排版模板，集成中文字体 <code>xelatex</code> 渲染支持，实现公式美化、数据表格自动插入与矢量图布局优化。</p>
+      </div>
+    </section>
+
   </div>
 
-  <!-- Interactive Modal for Human Gate Step 14 -->
-  <div class="modal-overlay" id="modal-step14">
-    <div class="modal-content">
-      <div class="modal-header">
-        <span style="font-size: 24px;">✍️</span>
-        <h3 class="modal-title">人机协同决策关卡: Step 14 论文摘要终审</h3>
-      </div>
-      <div class="modal-body">
-        <p style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 8px;">
-          国赛评阅对摘要字字斟酌。请检查并微调智能体自动拟定的四段式摘要（问题理解、方法、结果、亮点）。
-        </p>
-        <textarea class="text-area-input" id="abstract-textarea">【问题理解】本题针对抽样检测、装配缺陷、市场退换与拆解回收并存的复杂多工序链，进行了检测与拆解决策方案的最优化设计。
+  <footer>
+    <p>Modeling Factory 多智能体数学建模平台 © 2026. 演示部署于 <a href="https://xhxmt.github.io">xhxmt.github.io</a></p>
+  </footer>
 
-【方法】针对第一问，构建 Wald 序贯概率比检验 (SPRT) 模型以使质检样本规模最小化；针对第二、三问，运用吸收马尔可夫链闭式推导刻画拆解回收的平滑状态循环，建立混合整数规划模型 (MILP) 并采用 Gurobi 求解；针对第四问，引入区间不确定性重构为对偶 Gamma-鲁棒优化模型。
-
-【结果】结果表明：SPRT 检测量较固定样本节省 48.3% 成本；第二问的最优决策均表现为“不进行前置质检并拆解回收成品”；第四问在恶劣扰动组合 Gamma=12 下依旧保持正利润，方案稳健。
-
-【亮点】通过 Wald SPRT 输出的估计精度 delta 级联输入第四问的鲁棒优化，实现前四问数据流全线贯通；63 个扰动点敏感性分析表明解零单调，极具说服力。</textarea>
-      </div>
-      <div class="modal-footer">
-        <button class="btn" style="width: auto;" onclick="submitStep14Decision()">核准并更新 LaTeX 源码</button>
-      </div>
-    </div>
-  </div>
-
+  <!-- Mock Data for Simulation -->
   <script>
-    // Navigation Tab Switching
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-      
-      const activeBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
-      if (activeBtn) activeBtn.classList.add('active');
-      
-      const content = document.getElementById(`${tabId}-content`);
-      if (content) content.classList.add('active');
-    }
+    const PROBLEMS_DATA = {
+      cumcm_2024b: {
+        title: "CUMCM 2024 Problem B - 定日镜场优化设计",
+        steps: [
+          {
+            step: 0,
+            phase: "setup",
+            phaseName: "准备阶段",
+            title: "Step 0: 问题解析与 OCR 提取",
+            agent: "MinerU 解析智能体",
+            description: "利用 OCR 工具包 MinerU 对竞赛原始 PDF 进行深度解析，自动切分段落、转换繁琐公式为标准 LaTeX，并解析镜场位置坐标表格。",
+            inputs: ["problem.pdf"],
+            outputs: ["problem/problem_parsed.md", "problem/tables_extracted/table_coords.csv"],
+            prompt: "你是一个专业的学术文献 OCR 解析智能体。请读取定日镜场优化问题 PDF，忽略非结构化噪声，精准提取圆形定日镜场半径（350m）、吸收塔高度（80m）、镜片尺寸（6m x 6m）等参数，并将公式提取成规范的 Latex 格式。",
+            logs: [
+              "[System] 初始化项目目录: ongoing/solar_heliostat_2024b",
+              "[System] 挂载原始问题 PDF: CUMCM_2024_Problem_B.pdf",
+              "[MinerU Agent] 正在调用 MinerU 解析 PDF 文本...",
+              "[MinerU Agent] 成功捕获 4 张表格，提取出 8 个空间解析几何公式。",
+              "[System] 生成 Markdown 结构化问题: problem/problem_parsed.md",
+              "[System] 成功解析定日镜场位置坐标数据，输出 CSV 至: problem/tables_extracted/table_coords.csv",
+              "[System] 步骤 0 检查完成。文件状态完整。"
+            ],
+            code: "",
+            visual: { type: "placeholder" },
+            paper: null
+          },
+          {
+            step: 1,
+            phase: "setup",
+            phaseName: "准备阶段",
+            title: "Step 1: 文献背景研究与方法预选",
+            agent: "学术文献研究智能体",
+            description: "对定日镜的阴影遮挡、阻挡、余弦损失等光学效率公式进行推导调研，选择基于三维向量旋转与解析几何的建模方案。",
+            inputs: ["problem/problem_parsed.md"],
+            outputs: ["research/literature_notes.md", "research/selected_methods.json"],
+            prompt: "你是一个资深的数学建模专家。针对定日镜场优化控制问题，请调研计算机几何、光学余弦损失计算模型以及阴影遮挡计算算法（如多边形裁切或网格点法），给出合理的预选数学建模方案路线，并记录在 literature_notes.md 中。",
+            logs: [
+              "[Research Agent] 开始检索与定日镜光学效率相关的学术模型...",
+              "[Research Agent] 文献研究完毕。余弦效率公式定义为：入射光线向量与定日镜法向量的夹角余弦。阴影与遮挡损失定义为：相邻镜片投影重叠的面积比例。",
+              "[Research Agent] 拟选定方案: 1) 解析几何法向量求解模型; 2) 蒙特卡洛多光束阴影模拟; 3) 遗传/退火算法优化排布。",
+              "[System] 写入文献摘要: research/literature_notes.md",
+              "[System] 写入方法预选: research/selected_methods.json"
+            ],
+            code: "",
+            visual: { type: "placeholder" },
+            paper: null
+          },
+          {
+            step: 2,
+            phase: "modeling",
+            phaseName: "并行建模",
+            title: "Step 2: 并行建模方案提报",
+            agent: "并行建模提报组",
+            description: "多智能体并行推导数学公式。Proposal A 提出完全几何解析模型，Proposal B 提出简化的离散网格投影遮挡模型，并分别编写了小规模求解 Demo 进行验证。",
+            inputs: ["research/selected_methods.json", "problem/tables_extracted/table_coords.csv"],
+            outputs: ["models/m1_analytical/proposal.md", "models/m2_discrete/proposal.md"],
+            prompt: "请同时探索两种不同的数学推导方向：A）基于三维镜面反射几何的精细遮挡模型；B）基于视线重合概率的统计简化模型。写出各自的数学公式，并针对小规模数据集（如10面镜子）写出演示求解 Python 代码，证明模型具备可解性。",
+            logs: [
+              "[System] 派发并行建模任务至: m1_analytical (智能体 A) 与 m2_discrete (智能体 B)",
+              "[Agent A] 开始推导三维球面镜面几何投影变换，建立反射向量方程...",
+              "[Agent B] 开始设计离散镜片采样射线追踪模型...",
+              "[Agent A] 验证完成。m1 方案在 10 面定日镜的测试集上运行良好，平均余弦效率 0.842。",
+              "[Agent B] 验证完成。m2 离散射线模型可处理大镜场，但单次遮挡算力消耗过大。",
+              "[System] 写入提报结果: models/m1_analytical/proposal.md 与 models/m2_discrete/proposal.md"
+            ],
+            code: `import numpy as np
 
-    // Sidebar Step Highlight
-    function selectStep(stepIndex) {
-      document.querySelectorAll('.step-item').forEach(item => item.classList.remove('active'));
-      const activeItem = document.getElementById(`step-${stepIndex}`);
-      if (activeItem) {
-        activeItem.classList.add('active');
-        // Scroll sidebar slightly to bring into view
-        activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-      
-      // Update quick status indicators
-      const stepNames = [
-        "问题解析与规范定义 (Step 0)",
-        "文献调研与可行流构建 (Step 1)",
-        "多路并行建模设计与打样 (Step 2)",
-        "方案评选 (人机协同关卡) (Step 3)",
-        "主模型扩展构建与符号对齐 (Step 4)",
-        "模型求解与日志存盘 (Step 5)",
-        "灵敏度扰动与鲁棒检验 (Step 6)",
-        "模型自评价与局限剖析 (Step 7)",
-        "可视化图表统一化美化 (Step 8)",
-        "LaTeX论文初稿撰写 (Step 9)",
-        "数值一致性交叉审计 (Step 10)",
-        "建设性审稿意见产出 (Step 11)",
-        "论文修订与问题销账 (Step 12)",
-        "模拟评委多维度打分 (Step 13)",
-        "摘要精打细磨 (人机协同) (Step 14)",
-        "表格规范与去AI化润色 (Step 15)",
-        "最终编译排版与打包 (Step 16)"
-      ];
-      
-      const roles = [
-        "ParserAgent", "ResearcherAgent", "Modeler/Solver", "DeciderAgent",
-        "ModelerAgent", "SolverAgent", "ModelerAgent", "ModelerAgent",
-        "SolverAgent", "ModelerAgent", "ReviewerAgent", "CriticAgent",
-        "ModelerAgent", "JudgeAgent", "ModelerAgent", "ReviewerAgent", "SolverAgent"
-      ];
-      
-      document.getElementById('status-step-name').innerText = stepNames[stepIndex];
-      document.getElementById('status-role').innerText = roles[stepIndex];
+def calculate_sun_direction(declination, hour_angle, latitude):
+    """
+    计算太阳高度角和方位角对应的入射光线向量
+    """
+    lat_rad = np.radians(latitude)
+    dec_rad = np.radians(declination)
+    h_rad = np.radians(hour_angle)
+    
+    # 计算太阳高度角 sinh
+    sinh = np.sin(lat_rad)*np.sin(dec_rad) + np.cos(lat_rad)*np.cos(dec_rad)*np.cos(h_rad)
+    elevation = np.arcsin(sinh)
+    
+    # 计算太阳方位角 cosh
+    cosh = (np.sin(dec_rad) - np.sin(elevation)*np.sin(lat_rad)) / (np.cos(elevation)*np.cos(lat_rad))
+    cosh = np.clip(cosh, -1.0, 1.0)
+    azimuth = np.arccos(cosh)
+    if h_rad > 0:
+        azimuth = 2*np.pi - azimuth
+        
+    # 三维空间光线向量 (指向太阳)
+    sun_vec = np.array([
+        np.cos(elevation) * np.sin(azimuth),
+        np.cos(elevation) * np.cos(azimuth),
+        np.sin(elevation)
+    ])
+    return sun_vec / np.linalg.norm(sun_vec)`,
+            visual: {
+              type: "image",
+              url: "images/fig-scenario.png",
+              title: "Step 2: 太阳运行轨迹与多点入射角几何分析"
+            },
+            paper: null
+          },
+          {
+            step: 3,
+            phase: "modeling",
+            phaseName: "并行建模",
+            title: "Step 3: 方案决策与人类评审",
+            agent: "模型仲裁智能体",
+            description: "对比并行方案的拟合精度与时间复杂度。最终决定采纳 A 方案（三维几何投影）作为主干，以保证国赛论文所要求的极致物理精度。",
+            inputs: ["models/m1_analytical/proposal.md", "models/m2_discrete/proposal.md"],
+            outputs: ["models/method_selection.json"],
+            prompt: "评估 Proposal A 与 B 的优缺点，特别是计算耗时和余弦反射精度。综合给出仲裁报告，建议默认方案并写入 method_selection.json。如需人类修改，自动暂停并提示人类编辑该文件进行干预。",
+            logs: [
+              "[Selector Agent] 方案评估中...",
+              "[Selector Agent] 方案 A (三维几何解析模型) 精度更高 (数学误差 < 0.1%)，且在计算阴影遮挡效率时具有解析表达式形式，计算开销更稳定。",
+              "[Selector Agent] 方案 B (射线离散采样) 的随机误差在镜场边缘区域容易引起优化梯度抖动。",
+              "[Selector Agent] 仲裁结果: 推荐采纳 m1_analytical 并引入三维反射变换做敏感分析。",
+              "[System] 方案确认。无人类介入，自动流转至下一步骤。"
+            ],
+            code: "",
+            visual: { type: "placeholder" },
+            paper: null
+          },
+          {
+            step: 4,
+            phase: "modeling",
+            phaseName: "并行建模",
+            title: "Step 4: 完整数学模型推导",
+            agent: "建模主推导智能体",
+            description: "推导吸收塔采光口接收比例、定日镜聚焦截断效率、大气透射率、以及定日镜年均输出热功率的复杂双重积分方程，编写公式 LaTeX 源码。",
+            inputs: ["models/method_selection.json"],
+            outputs: ["models/m_final_equations.md", "models/m_final_vars.json"],
+            prompt: "你是一个严谨的数学家。请详细写出以下几个物理参数的积分表达式：1) 阴影与遮挡损失; 2) 大气透射损失（考虑镜面至吸收塔的斜距）; 3) 集热器聚焦效率。并将所有待优化变量（定日镜安装中心位置 $X_i, Y_i$, 镜子法向量）记录至 final_vars.json。",
+            logs: [
+              "[Model Builder Agent] 开始推推导镜场总效率公式: $\\eta = \\eta_{sb} \\cdot \\eta_{cos} \\cdot \\eta_{at} \\cdot \\eta_{trunc} \\cdot \\eta_{ref}$",
+              "[Model Builder Agent] 大气透射率公式推导：当斜距 $d < 1000$ 米时， $\\eta_{at} = 0.99321 - 0.0001176 d + 1.97\\times 10^{-8} d^2$",
+              "[Model Builder Agent] 确定优化目标函数：最大化年均单位面积输出热功率 $E = \\frac{1}{A_{total}} \\sum \\eta \\cdot I_{DNI} \\cdot A_{mirror}$",
+              "[System] 导出数学公式和优化变量清单至 ongoing/solar_heliostat_2024b/models/"
+            ],
+            code: "",
+            visual: { type: "placeholder" },
+            paper: null
+          },
+          {
+            step: 5,
+            phase: "solving",
+            phaseName: "求解建模",
+            title: "Step 5: 优化算法实现与求解",
+            agent: "代码求解智能体",
+            description: "编写高效的优化求解程序。调用 `solver_submit.sh` 在后台使用粒子群算法（PSO）和坐标轮换法联合求解 1718 面定日镜的坐标排布与法线角度控制，输出优化的坐标集与效率矩阵。",
+            inputs: ["models/m_final_equations.md", "problem/tables_extracted/table_coords.csv"],
+            outputs: ["models/m3_solver/solve_opt.py", "models/m3_solver/opt_results.json"],
+            prompt: "请基于 final_equations.md 编写 Python 优化程序。使用 SciPy.optimize 或粒子群（PSO）对定日镜场位置坐标进行全局搜寻。确保优化路径能绕过吸收塔的干涉区，最终求解出最大年均热效率。编写完毕后，使用 solver_submit.sh 提交运行。",
+            logs: [
+              "[Solver Agent] 开始编写全局参数优化器: models/m3_solver/solve_opt.py",
+              "[System] 通过 `solver_submit.sh` 异步运行求解任务 #JOB_20260605_B05...",
+              "[Solver CLI] 优化器正在迭代计算，当前迭代次数: 50/500, 当前最高单位年输出热功率: 0.582 kW/m²...",
+              "[Solver CLI] 当前迭代次数: 250/500, 优化结果逐步收敛...",
+              "[Solver CLI] 迭代完成。最优排布方案共包含定日镜 1684 面。镜面总效率提升了 14.8%，大气透射平均效率为 0.9632。",
+              "[System] 任务执行完毕。优化结果及参数写入: models/m3_solver/opt_results.json"
+            ],
+            code: `import numpy as np
+from scipy.optimize import minimize
 
-      // If simulation is not running, auto-switch to Artifact Explorer and show corresponding file
-      if (!simActive) {
-        const stepFileMapping = {
-          0: 'problem_brief.md',
-          1: 'research_brief.md',
-          2: 'viable_streams.md',
-          3: 'chosen_method.md',
-          4: 'model.md',
-          5: 'solve_log.md',
-          6: 'fig-tornado.png',
-          7: 'assumption_ledger.md',
-          8: 'fig-scenario.png',
-          9: 'paper_draft.tex',
-          10: 'code_review.md',
-          11: 'audit_issue_ledger.md',
-          12: 'audit_issue_ledger.md',
-          13: 'judge_evaluation.md',
-          14: 'abstract_draft.md',
-          15: 'checkpoint.md',
-          16: 'paper_draft.tex'
-        };
-        const fileId = stepFileMapping[stepIndex];
-        if (fileId) {
-          switchTab('artifacts');
-          openFile(fileId);
-        }
-      }
-    }
+def calculate_shadowing_blocking(heliostat_pos, sun_vec):
+    """
+    解析几何方法求解多片定日镜之间在此太阳向量下的相互阻挡和遮挡面积
+    """
+    n_mirrors = len(heliostat_pos)
+    sb_efficiency = np.ones(n_mirrors)
+    # 镜场三维几何干涉过滤
+    for i in range(n_mirrors):
+        for j in range(n_mirrors):
+            if i == j: continue
+            dist = np.linalg.norm(heliostat_pos[i] - heliostat_pos[j])
+            if dist > 35: continue # 过滤安全间距之外的镜子
+            # 投影裁剪算法
+            overlap_ratio = get_projection_overlap(heliostat_pos[i], heliostat_pos[j], sun_vec)
+            sb_efficiency[i] *= (1.0 - overlap_ratio)
+    return sb_efficiency
 
-    // Toggle File Tree Folders
-    function toggleFolder(folderId) {
-      const folder = document.getElementById(folderId);
-      if (folder.style.display === 'none') {
-        folder.style.display = 'flex';
-      } else {
-        folder.style.display = 'none';
-      }
-    }
+def get_projection_overlap(pos_i, pos_j, sun_vec):
+    # 模拟两面相邻镜子的重影区域
+    # delta 投影向量差
+    vec_ij = pos_j - pos_i
+    proj_dist = np.dot(vec_ij, sun_vec)
+    lateral_dist = np.linalg.norm(vec_ij - proj_dist * sun_vec)
+    if lateral_dist < 8.5: # 镜面长 6m, 宽 6m, 临界间距
+        return max(0, 1 - (lateral_dist / 8.5))
+    return 0.0`,
+            visual: {
+              type: "image",
+              url: "images/fig-robust.png",
+              title: "Step 5: 全局粒子群优化 (PSO) 定日镜场多圈径向坐标排布收敛轨迹"
+            },
+            paper: null
+          },
+          {
+            step: 6,
+            phase: "solving",
+            phaseName: "求解建模",
+            title: "Step 6: 鲁棒性与参数灵敏度校验",
+            agent: "数据分析智能体",
+            description: "改变自变量参数（如风载引起的定日镜法向扰动误差、不同月份DNI辐照度、吸收塔反射效率），进行敏感性扫描测试，输出模型鲁棒度指标与 Tornado 贡献度图表。",
+            inputs: ["models/m3_solver/opt_results.json"],
+            outputs: ["models/m4_sensitivity/robust_check.py", "models/m4_sensitivity/sensitivity.json"],
+            prompt: "编写脚本分析反射法向量的微小偏移（0.1~0.5度误差）对总体接收热效率的灵敏度，并计算在极端阴雨天气、设备折旧等情境下系统输出的鲁棒性上限。输出结果并画出敏感度 Tornado 关系图。",
+            logs: [
+              "[Data Analyst Agent] 加载最优解 opt_results.json ...",
+              "[Data Analyst Agent] 正在对镜面追踪指向误差进行扰动扫描 (扰动范围: -0.5度 至 +0.5度)...",
+              "[Data Analyst Agent] 当指向误差达到 0.15度 时，集热截断效率从 94.2% 下降至 89.1%。",
+              "[Data Analyst Agent] 当指向误差超过 0.35度 时，系统将发生急剧的热流溢出，热效率受风载扰动较大。模型提出了加权稳健设计机制以提高鲁棒性。",
+              "[System] 输出稳健分析数据: models/m4_sensitivity/sensitivity.json"
+            ],
+            code: `def run_sensitivity_analysis(opt_coords, max_tilt_error):
+    """
+    仿真风载导致镜子法向量发生微小偏转扰动时，集热器截断效率的衰减曲线
+    """
+    errors = np.linspace(0.0, max_tilt_error, 10)
+    system_efficiency = []
+    
+    for err in errors:
+        # 给所有定日镜法向量加上随机微扰噪声
+        perturbed_normals = generate_random_tilt(err)
+        eff = simulate_field_efficiency(opt_coords, perturbed_normals)
+        system_efficiency.append(eff)
+        
+    return errors, system_efficiency`,
+            visual: {
+              type: "image",
+              url: "images/fig-tornado.png",
+              title: "Step 6: 不同气象扰动参数对定日镜场总体截断效率的灵敏度 Tornado 图"
+            },
+            paper: null
+          },
+          {
+            step: 7,
+            phase: "solving",
+            phaseName: "求解建模",
+            title: "Step 7: 方案评估与层次分析 (AHP) 评分",
+            agent: "模型评估智能体",
+            description: "通过构建层次分析模型（AHP），以经济成本、施工难度、年均输出热功率以及抗强风稳健性四个维度为准则，对三种替代排布阵列进行定量打分，提供最终决策报告。",
+            inputs: ["models/m3_solver/opt_results.json", "models/m4_sensitivity/sensitivity.json"],
+            outputs: ["models/m5_evaluation/ahp_weights.json", "models/m5_evaluation/report.md"],
+            prompt: "你是一个决策评估专家。请针对我们的优化排布方案建立 AHP 模型。计算经济成本、工程耗时、热能效益、抗风鲁棒性 4 个准则的成对比较矩阵，验证一致性比例 CR < 0.1，并输出最终决策得分。",
+            logs: [
+              "[Evaluator Agent] 建立 AHP 二层准则评价体系。第一准则: 工程综合可行性。",
+              "[Evaluator Agent] 经检验，成对比较矩阵的特征根 Lambda_max = 4.12, CI = 0.04, RI = 0.89. 一致性比例 CR = CI / RI = 0.045 < 0.1。一致性检验合格！",
+              "[Evaluator Agent] 最终得分：环形交错分布排布 (0.835) > 传统对称分布 (0.612) > 随机径向分布 (0.518)。",
+              "[System] 写入 AHP 评估矩阵: models/m5_evaluation/ahp_weights.json"
+            ],
+            code: "",
+            visual: {
+              type: "image",
+              url: "images/fig-ahp.png",
+              title: "Step 7: 层次分析法 (AHP) 优化方案成对矩阵决策权重树图"
+            },
+            paper: null
+          },
+          {
+            step: 8,
+            phase: "solving",
+            phaseName: "求解建模",
+            title: "Step 8: 论文矢量图绘制与抛光",
+            agent: "绘图 polish 智能体",
+            description: "自动提取运行代码绘制的折线图、云图，转换为高精度的学术级 Matplotlib 图像，保存为高质量矢量图 EPS/PNG 格式，并生成适配 LaTeX 的 caption 说明。",
+            inputs: ["models/m3_solver/opt_results.json", "models/m4_sensitivity/sensitivity.json"],
+            outputs: ["papers/figures/efficiency_cloud.png", "papers/figures/sensitivity_curve.png"],
+            prompt: "将模型运行产出的低像素图表，重新使用 Matplotlib 画成高精度的论文级别矢量图。要求：采用科学配色（如 viridis/plasma），标注清晰的 X/Y 轴物理单位，线宽与字体需满足 LaTeX 两栏或单栏插图排版规范。",
+            logs: [
+              "[Visual Agent] 读取数值仿真原始数据文件...",
+              "[Visual Agent] 正在使用 seaborn + science-plots 绘制定日镜场阴影挡光效率云图...",
+              "[Visual Agent] 输出高精度图表: papers/figures/efficiency_cloud.png",
+              "[Visual Agent] 正在绘制指向误差灵敏度分析散点置信度图...",
+              "[Visual Agent] 输出高精度图表: papers/figures/sensitivity_curve.png",
+              "[System] 步骤 8 图表渲染并保存至 papers/figures/ 目录。"
+            ],
+            code: `import matplotlib.pyplot as plt
+import seaborn as sns
 
-    // Mock File Database
-    const filesDb = {
-      'problem_brief.md': {
-        path: 'problem/problem_brief.md',
-        content: `<h1>问题重述与子问题分解</h1>
-<blockquote>本文件对 2024 年国赛 B 题进行了解析与拆解。</blockquote>
-<h2>1. 背景描述</h2>
-<p>在电子产品的生产过程中，零部件的检测决策和不合格成品的拆解回收构成了一个关键的经济平衡。每个环节都需要在检测成本、装配不良损失和市场退换声誉损失之间求最优解。</p>
-<h2>2. 子问题解析</h2>
-<ul>
-  <li><strong>Sub-problem 1 (质检规则设计)</strong>: 给定名义次品率和检测置信上限，设计最省检测次数的抽样判定准则。</li>
-  <li><strong>Sub-problem 2 (核心决策模型)</strong>: 在零配件检测、半成品检验、成品大检与拆卸决策组合中，寻求单次期望利润最高的方案。</li>
-  <li><strong>Sub-problem 3 (多级工序推广)</strong>: 扩展到含有 16 个装配部件的复杂装配树，进行全局规划。</li>
-  <li><strong>Sub-problem 4 (鲁棒性检验)</strong>: 对名义次品率施加波动干扰，保证决策在极端情况下（最坏情形）依旧能够获取正利润。</li>
-</ul>`
+def plot_efficiency_cloud(x, y, z):
+    """
+    绘制定日镜场总效率的空间热力云图 (用于 LaTeX 插图)
+    """
+    plt.style.use('seaborn-v0_8-paper')
+    fig, ax = plt.subplots(figsize=(6, 5), dpi=300)
+    
+    # 绘制高精度伪彩插图
+    sc = ax.scatter(x, y, c=z, cmap='viridis', s=15, edgecolors='none')
+    cbar = fig.colorbar(sc, ax=ax)
+    cbar.set_label('年均总效率 (Cosine * Shading)', fontsize=10)
+    
+    ax.set_title('定日镜场年均综合效率空间热力分布云图', fontsize=11, pad=12)
+    ax.set_xlabel('镜面 X 轴坐标 (米)', fontsize=9)
+    ax.set_ylabel('镜面 Y 轴坐标 (米)', fontsize=9)
+    ax.grid(True, linestyle='--', alpha=0.5)
+    
+    plt.tight_layout()
+    plt.savefig('papers/figures/efficiency_cloud.png', bbox_inches='tight')`,
+            visual: {
+              type: "image",
+              url: "images/fig-scenario.png",
+              title: "Step 8: 生成的高清定日镜表面阴影截断光学转换图 (矢量图)"
+            },
+            paper: null
+          },
+          {
+            step: 9,
+            phase: "writing",
+            phaseName: "论文撰写",
+            title: "Step 9: LaTeX 论文初稿起草",
+            agent: "论文起草智能体",
+            description: "根据前几步得到的数学方程、求解结果、AHP评估报告和矢量图，自动从 LaTeX 模板（如全国大学生数学建模国赛模板）起草整篇学术论文的代码结构。",
+            inputs: ["models/m_final_equations.md", "models/m3_solver/opt_results.json"],
+            outputs: ["papers/paper_draft.tex"],
+            prompt: "你是一个专业的 LaTeX 学术论文排版助手。请使用 CUMCM 竞赛 LaTeX 排版模板，编写论文主体初稿。要求包含标题页、摘要、目录、问题背景、模型基本假设、符号说明、核心优化模型、算法设计以及初步的求解结果表格占位符。",
+            logs: [
+              "[Writer Agent] 加载 CUMCM 国赛标准 LaTeX 论文模板...",
+              "[Writer Agent] 自动写入封面标题: 基于三维几何投影与全局粒子群算法的定日镜场排布优化设计...",
+              "[Writer Agent] 自动生成假设段落 (1. 镜面完全刚性, 2. 光线直线传播, 3. 忽略地形起伏)...",
+              "[Writer Agent] 构建参数符号定义表 (含有 14 个参数 LaTeX 代码)...",
+              "[Writer Agent] 将 models/ 中的公式积分式插入 LaTeX 模型推导章节...",
+              "[System] 论文初稿写入完成: papers/paper_draft.tex"
+            ],
+            code: "",
+            visual: { type: "placeholder" },
+            paper: {
+              page: 1,
+              title: "基于三维几何投影与全局粒子群算法的定日镜场排布优化设计",
+              content: `<h3>摘 &nbsp; 要</h3>
+<p class="paper-abstract-p">本文针对太阳能光热电站定日镜场的优化设计与控制问题，建立了一套基于三维向量光学几何投影的效率计算模型，并设计了一种新型径向环形分布优化搜索策略。首先，推导了定日镜法向量与太阳位置向量的精确解析方程，计算了关键的余弦损失率。通过三维射线几何投影裁剪算法，定量计算了多镜交互情况下的阴影遮挡损失...</p>
+<p class="paper-abstract-p"><b>关键词：</b>定日镜场；余弦损失；三维投影裁剪；粒子群算法；稳健性设计</p>
+<h3>1. 问题背景与分析</h3>
+<p class="paper-abstract-p">太阳能光热电站通过数以千计的定日镜将太阳辐射聚焦于吸收塔顶部的集热器上。定日镜在反射阳光时，由于入射方向与法向夹角不同会产生余弦损失；由于定日镜相互靠拢，又会产生阴影与遮挡损失。本题要求我们通过优化镜场排布和镜面法线角度，最大化年均单位面积输出热功率，极具应用价值...</p>`,
+              image: "images/paper2024b-01.png"
+            }
+          },
+          {
+            step: 10,
+            phase: "writing",
+            phaseName: "论文撰写",
+            title: "Step 10: 一致性门禁检测 (Gate 1)",
+            agent: "一致性门禁校验脚本",
+            description: "运行 `verify_numbers.py`，自动提取 Python 执行结果 JSON 和 LaTeX 源代码中的所有数值。若发现公式中输出的最大热效率与表格中的求解值不符，将立即拦截并报错重写。",
+            inputs: ["models/m3_solver/opt_results.json", "papers/paper_draft.tex"],
+            outputs: ["papers/consistency_report.json"],
+            prompt: "检查 LaTeX 源码中的参数与求解程序最终输出结果中数值（如：定日镜数量 1684, 最大热功率 0.582, 倾斜角 0.15）是否保持完全一致。发现任何冲突必须报告不符并标记为 Block 门槛异常。",
+            logs: [
+              "[Gate 1 CLI] 启动 LaTeX 与 Python 求解数据一致性校验脚本...",
+              "[Gate 1 CLI] 提取 opt_results.json 关键值: num_mirrors=1684, annual_power=0.58231 kW/m².",
+              "[Gate 1 CLI] 解析 paper_draft.tex 发现文本字段: '优化方案包含定日镜 1684 面...'"
+            ],
+            code: "",
+            visual: { type: "placeholder" },
+            paper: null
+          }
+        ]
       },
-      
-      'feasibility_constraints.md': {
-        path: 'problem/feasibility_constraints.md',
-        content: `<h1>可行性与硬性约束清单</h1>
-<h2>1. 74小时时间预算规划</h2>
-<table>
-  <thead>
-    <tr>
-      <th>工作阶段</th>
-      <th>建议耗时</th>
-      <th>关键产物</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>问题解析与定位 (Step 0-1)</td>
-      <td>6 小时</td>
-      <td>feasibility_constraints.md, viable_streams.md</td>
-    </tr>
-    <tr>
-      <td>多路打样与优选 (Step 2-3)</td>
-      <td>12 小时</td>
-      <td>mN_spec.md, chosen_method.md</td>
-    </tr>
-    <tr>
-      <td>建模与求解 (Step 4-8)</td>
-      <td>24 小时</td>
-      <td>model.md, results/, figures/</td>
-    </tr>
-    <tr>
-      <td>论文写作与一审 (Step 9-11)</td>
-      <td>16 小时</td>
-      <td>paper.tex, review_comments.md</td>
-    </tr>
-    <tr>
-      <td>修改与二审编译 (Step 12-16)</td>
-      <td>16 小时</td>
-      <td>paper.pdf, submission.zip</td>
-    </tr>
-  </tbody>
-</table>
-<h2>2. 国赛硬性要求</h2>
-<ul>
-  <li>论文排版不允许出现学校、队号及个人信息（违规直接取消资格）。</li>
-  <li>代码附录必须可复现，引用的所有参数数据必须在正文中登记。</li>
-</ul>`
-      },
+      mcm_2024b: {
+        title: "MCM 2024 Problem B - 网球赛事势头分析",
+        steps: [
+          {
+            step: 0,
+            phase: "setup",
+            phaseName: "准备阶段",
+            title: "Step 0: 问题解析与数据提取",
+            agent: "MinerU 提取智能体",
+            description: "对网球比赛原始题目PDF及提供的数据集CSV进行结构化读取，清洗网球得分转换链条、局点、破发点等特征字段。",
+            inputs: ["Wimbledon_featured_matches.csv", "problem.pdf"],
+            outputs: ["problem/data_summary.json", "problem/features_extracted.csv"],
+            prompt: "读取 2024 美赛数学建模 B 题网球赛事数据，找出选手得分、受迫/非受迫失误、破发点及网前球等核心变量，进行特征工程提取。",
+            logs: [
+              "[System] 初始化项目目录: ongoing/tennis_momentum_2024b",
+              "[System] 挂载温网历史数据表格",
+              "[MinerU Agent] 解析温网比赛数据集特征列。总计 31 个底层变量。",
+              "[System] 结构化导出数据特征清单: problem/data_summary.json"
+            ],
+            code: "",
+            visual: { type: "placeholder" },
+            paper: null
+          },
+          {
+            step: 1,
+            phase: "setup",
+            phaseName: "准备阶段",
+            title: "Step 1: 文献背景与动力学推导",
+            agent: "学术文献研究智能体",
+            description: "检索体育运动“势头”（Momentum）的量化研究论文，选定基于马尔可夫链状态转移以及时间序列自回归（ARIMA/LSTM）的势头分析方案。",
+            inputs: ["problem/data_summary.json"],
+            outputs: ["research/literature_notes.md", "research/method_plan.json"],
+            prompt: "检索关于网球比赛势头的数学定义（如一阶差分马尔可夫势头转移率、基于赢球概率差的势头模型），确定拟采用的数模方法学路线。",
+            logs: [
+              "[Research Agent] 文献研究：网球赢球状态具有马氏链无记忆性假说，而势头则是在时间域的自相关物理量。",
+              "[Research Agent] 选定方案：采用累加赢球概率残差积分（CUSUM）作为势头定义，并结合随机森林预测局势逆转点。",
+              "[System] 导出研究报告: research/literature_notes.md"
+            ],
+            code: "",
+            visual: { type: "placeholder" },
+            paper: null
+          },
+          {
+            step: 2,
+            phase: "modeling",
+            phaseName: "并行建模",
+            title: "Step 2: 势头公式并行推导",
+            agent: "并行建模小组",
+            description: "智能体推导势头演化模型。Proposal A 推导基于马尔可夫网球点得分矩阵模型，Proposal B 提出基于时序状态注意力机制的模型，并进行回归对比。",
+            inputs: ["research/method_plan.json"],
+            outputs: ["models/m1_markov/proposal.md", "models/m2_lstm/proposal.md"],
+            prompt: "并行建立两个预测网球选手势头转折点的模型，Proposal A 使用马氏矩阵，Proposal B 使用循环时序网络，并给出运行 Demo。",
+            logs: [
+              "[System] 并行任务派发: m1_markov vs m2_lstm",
+              "[Agent A] 推导一阶马尔可夫球权得分概率公式...",
+              "[Agent B] 构建时序多特征融合 LSTM 滑动窗口分类器...",
+              "[System] 成功写入两个并行模型设计 ongoing/tennis_momentum_2024b/models/"
+            ],
+            code: `import numpy as np
 
-      'research_brief.md': {
-        path: 'research/research_brief.md',
-        content: `<h1>学术文献与方法调研</h1>
-<h2>1. 序贯抽样设计 (SPRT)</h2>
-<p>Wald 的序贯概率比检验（SPRT）与经典二项固定样本量检验相比，能够减少大约 40% 到 50% 的样本开销。在零部件检验阶段，如果来料质量极好或极差，SPRT 可以在仅抽样几件后迅速以极高的置信度决定“接纳”或“拒收”。</p>
-<h2>2. 回收循环与吸收马尔可夫链 (Absorption Markov Chain)</h2>
-<p>在含有成品“拆解-零件返回原料池-重新装配”的循环工业网络中，传统的线性递推会陷入无限递归。通过定义零配件、装配、不合格品、拆卸后状态为马尔可夫链的非吸收态，成品合格出厂和彻底作废为吸收态，利用根本矩阵 <strong>N = (I - Q)⁻¹</strong>，可以一步计算出任意零部件在出厂前被平均装配和拆解的期望次数，这是建立条件利润期望方程的核心数学工具。</p>`
-      },
+def calculate_match_transition(p_server_win):
+    """
+    网球单局内基于发球赢球概率的马尔可夫状态转移矩阵 (40-40, 占先等)
+    """
+    # 状态空间: [0-0, 15-0, 0-15, 30-0, 15-15, 0-30, 40-0, 30-15, ...]
+    # 构建 17x17 转移概率矩阵
+    P = np.zeros((17, 17))
+    q = 1.0 - p_server_win
+    # 填充马氏转移矩阵概率
+    P[0, 1] = p_server_win # Server wins point 1
+    P[0, 2] = q            # Receiver wins point 1
+    # ... 省略转移矩阵其余 15 个状态填充
+    return P`,
+            visual: {
+              type: "image",
+              url: "images/fig-scenario.png",
+              title: "Step 2: 马尔可夫得分状态转移流图与网球局部势头演化仿真"
+            },
+            paper: null
+          },
+          {
+            step: 3,
+            phase: "modeling",
+            phaseName: "并行建模",
+            title: "Step 3: 模型仲裁与合并",
+            agent: "模型仲裁智能体",
+            description: "评估两个方案。A 方案解释力强，物理公式清晰，最终被选为主模型；B 方案高维时序拟合较好，降维后作为主模型中描述长期记忆特征的补充因子。",
+            inputs: ["models/m1_markov/proposal.md", "models/m2_lstm/proposal.md"],
+            outputs: ["models/method_selected.json"],
+            prompt: "通过比较温网验证集上的 F1-score 指标，对马尔可夫方案和 LSTM 模型进行仲裁。输出合并方案至 method_selected.json。",
+            logs: [
+              "[Selector Agent] 评估中。马尔可夫模型解释性极强，符合美赛建模对公式物理意义的要求。",
+              "[Selector Agent] 仲裁报告: 将马尔可夫赢球状态转换作为主模型骨架，辅以 LSTM 隐藏层状态变化作为选手“气势波动”的动态拟合权重。",
+              "[System] 仲裁决策成功导入: models/method_selected.json"
+            ],
+            code: "",
+            visual: { type: "placeholder" },
+            paper: null
+          },
+          {
+            step: 4,
+            phase: "modeling",
+            phaseName: "并行建模",
+            title: "Step 4: 势头状态演化方程定义",
+            agent: "推导智能体",
+            description: "建立网球比赛势头的积分与连续变化方程。定义选手 $i$ 在时刻 $t$ 的势头值 $M_i(t) = w_1 S_{score}(t) + w_2 A_{ace}(t) - w_3 E_{unforced}(t)$，给出多特征权重自适应解析方程。",
+            inputs: ["models/method_selected.json"],
+            outputs: ["models/final_momentum_eq.md"],
+            prompt: "推导详细的连续势头波动微分方程式，对选手的非受迫性失误、破发成功率设置加权系数，保证模型能完美复现温网男单决赛势头翻转走势。",
+            logs: [
+              "[Model Builder Agent] 确定连续势头波动表达式: $M(t) = \\int \\theta(u) e^{-\\lambda (t-u)} du$",
+              "[Model Builder Agent] 结合半衰期衰减衰减因子 $\\lambda$，反应选手随着时间推移势头的自我冷却效应。",
+              "[System] 方程写入 ongoing/tennis_momentum_2024b/models/final_momentum_eq.md"
+            ],
+            code: "",
+            visual: { type: "placeholder" },
+            paper: null
+          },
+          {
+            step: 5,
+            phase: "solving",
+            phaseName: "求解建模",
+            title: "Step 5: 模型求解与转折点提取",
+            agent: "代码求解智能体",
+            description: "运行求解代码，对温网男单赛事数据进行全量拟合，用粒子群算法求出最佳加权特征值，计算选手的势头变化，提取 84% 准确度的赛事转折点。",
+            inputs: ["models/final_momentum_eq.md", "problem/features_extracted.csv"],
+            outputs: ["models/solver_out/run_fit.py", "models/solver_out/tennis_results.json"],
+            prompt: "基于网球势头方程，使用 Python 拟合温网比赛。利用优化器学习出非受迫性失误、双误、Ace球的相对权重，画出整场比赛选手的势头演化波形图，并抓取势头剧烈倒转（逆转点）的触发条件。",
+            logs: [
+              "[Solver Agent] 开始运行拟合优化程序: models/solver_out/run_fit.py",
+              "[System] 通过 `solver_submit.sh` 异步运行求解任务 #JOB_20260605_T05...",
+              "[Solver CLI] 提取温网决赛数据集数据，进行 240 个点时刻的积分值平滑...",
+              "[Solver CLI] 优化权重收敛：得分差权重 0.45，Ace球权重 0.25，非受迫失误扣分权重 -0.30。",
+              "[Solver CLI] 成功检出 5 处关键赛事逆转点，与实际电视解说势头节点高度一致！",
+              "[System] 求解结果写入: models/solver_out/tennis_results.json"
+            ],
+            code: `import pandas as pd
+import numpy as np
 
-      'viable_streams.md': {
-        path: 'research/viable_streams.md',
-        content: `<h1>备选建模流设计 (Viable Streams)</h1>
-<blockquote>流水线对 3 个不同的建模思路进行了立项调研。</blockquote>
-<h2>Stream m1: 混合整数线性规划 (MILP) 主线</h2>
-<p><strong>特色</strong>：大-M法线性化，Gurobi求解。属于标准国赛常规打法，求出的方案通常最标准，但缺乏让人眼前一亮的数学高度。</p>
-<h2>Stream m2: AHP-TOPSIS 决策表枚举流</h2>
-<p><strong>特色</strong>：将所有决策进行暴力枚举（2¹⁶ 个），利用层次分析法 (AHP) 为利润、出厂合格率、退换成本设置主观权重，再用 TOPSIS 进行全局打分。利于可视化呈现决策矩阵，但偏向定性，求解精度易受指标权重影响。</p>
-<h2>Stream m3: 序贯抽检 + 吸收马尔可夫链 + Gamma鲁棒模型</h2>
-<p><strong>特色 (推荐创新)</strong>：把质检第一问归为序贯抽样，第二、三问通过马尔可夫吸收态解析求出期望，第四问转化为极具学术前沿的对偶 Robust Optimization。创新得分高，求解挑战大。</p>`
-      },
-
-      'viability_gate.md': {
-        path: 'research/viability_gate.md',
-        content: `<h1>文献及可行性决策门 (Step 1 Gate)</h1>
-<blockquote>VERDICT: PASS</blockquote>
-<p><strong>审查结论</strong>：经过对 Stream m1, m2, m3 的技术细节、数据需求及时间开销评估，判定 Stream m3 在创新性和求解可行性上达到了最佳结合点。三路备选均已通过可行性校验，允许进入 Step 2 Parallel Proposals。</p>`
-      },
-
-      'chosen_method.md': {
-        path: 'models/chosen_method.md',
-        content: `<h1>主方案决策依据 (chosen_method)</h1>
-<blockquote>由 DeciderAgent & 人类审核 判定。</blockquote>
-<p><strong>被激活主线</strong>：Stream m3 (SPRT + 吸收马尔可夫链 + Gamma鲁棒)</p>
-<p><strong>支持理由</strong>：</p>
-<ul>
-  <li>吸收马尔可夫链相比暴力枚举（Stream m2），能完美处理“无限拆卸-重装”的闭环反馈通路。</li>
-  <li>相比简单的 MILP 模型，它在第一问（SPRT 动态检验）和第四问（不确定概率的区间鲁棒重构）上有强大的数模支撑，切中 CUMCM 评委对“创新性”的超高偏好。</li>
-</ul>`
-      },
-
-      'model.md': {
-        path: 'models/model.md',
-        content: `<h1>核心数学模型构建</h1>
-<h2>1. Wald SPRT 质检模型</h2>
-<p>定义接收原假设 H₀: p ≤ p₀（合格率高），拒收备择假设 H₁: p ≥ p₁（次品率高）。在每一步观测到零件是次品 ($x_m = 1$) 或合格品 ($x_m = 0$) 后，累积似然比比对：</p>
-<pre>
-  A = (1 - β) / α,   B = β / (1 - α)
-  累积对数似然比: L_m = sum_{j=1}^m z_j
-</pre>
-<h2>2. 吸收马尔可夫链转化</h2>
-<p>状态集定义：</p>
-<ul>
-  <li>S₁: 原料零配件池</li>
-  <li>S₂: 装配流水线</li>
-  <li>S₃: 不合格成品</li>
-  <li>S₄: 拆卸分离池</li>
-  <li>S_accept (吸收态): 销售出厂</li>
-  <li>S_waste (吸收态): 作废销毁</li>
-</ul>
-<p>状态转移矩阵 <strong>P</strong> 划分：</p>
-<pre>
-  P = | Q  R |
-      | 0  I |
-</pre>
-<p>由此求得基本矩阵 <strong>N = (I - Q)⁻¹</strong>。成品的期望装配次数直接对应于 N 矩阵的首行首列分量。</p>`
-      },
-
-      'symbol_table.md': {
-        path: 'models/symbol_table.md',
-        content: `<h1>符号登记表</h1>
-<blockquote>严格防范“同符不同意”与“无源符号”扣分风险。</blockquote>
-<table>
-  <thead>
-    <tr>
-      <th>符号</th>
-      <th>类型</th>
-      <th>物理量纲</th>
-      <th>取值范围</th>
-      <th>含义</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>p_i</td>
-      <td>参数</td>
-      <td>无量纲</td>
-      <td>[0, 1]</td>
-      <td>零部件 i 的名义次品率</td>
-    </tr>
-    <tr>
-      <td>c_i</td>
-      <td>参数</td>
-      <td>元/件</td>
-      <td>R+</td>
-      <td>零部件 i 的购置单价</td>
-    </tr>
-    <tr>
-      <td>c_is</td>
-      <td>参数</td>
-      <td>元/次</td>
-      <td>R+</td>
-      <td>零部件 i 的质检行为单次开销</td>
-    </tr>
-    <tr>
-      <td>x_i</td>
-      <td>决策变量</td>
-      <td>0-1值</td>
-      <td>{0, 1}</td>
-      <td>是否在装配前检验零部件 i</td>
-    </tr>
-    <tr>
-      <td>y</td>
-      <td>决策变量</td>
-      <td>0-1值</td>
-      <td>{0, 1}</td>
-      <td>是否在出厂前大检成品</td>
-    </tr>
-    <tr>
-      <td>d</td>
-      <td>决策变量</td>
-      <td>0-1值</td>
-      <td>{0, 1}</td>
-      <td>成品大检失败后是拆解(1)还是丢弃(0)</td>
-    </tr>
-    <tr>
-      <td>&Gamma;</td>
-      <td>控制参量</td>
-      <td>整数</td>
-      <td>[0, N]</td>
-      <td>不确定性鲁棒预算限制阶数</td>
-    </tr>
-  </tbody>
-</table>`
-      },
-
-      'assumption_ledger.md': {
-        path: 'models/assumption_ledger.md',
-        content: `<h1>建模假设底账 (Assumption Ledger)</h1>
-<blockquote>列出所有底层前提逻辑，作为一致性审计的根源依据。</blockquote>
-<ol>
-  <li><strong>A1 (大批量分布假设)</strong>：来料批次极大，抽样不影响总体分布，采用二项/序贯检验。</li>
-  <li><strong>A2 (零件i.i.d.独立同分布)</strong>：同一类型的零部件其性能与故障概率相互独立。</li>
-  <li><strong>A3 (拆解无损记忆假设)</strong>：成品拆卸后，零部件物理无磨损，且其检测与装配属性重新初始化。</li>
-  <li><strong>A4 (调换一赔一假设)</strong>：市场退回商品仅产生固定退换补偿费，不产生叠加名誉损失诉讼费。</li>
-</ol>`
-      },
-
-      'solve_log.md': {
-        path: 'results/solve_log.md',
-        content: `<h1>求解器运行日志摘要 (solve_log)</h1>
-<blockquote>所有正文数值必须能在此追溯到 solver log 时间戳。</blockquote>
-<table>
-  <thead>
-    <tr>
-      <th>作业ID</th>
-      <th>类型</th>
-      <th>求解算法</th>
-      <th>计算时间(s)</th>
-      <th>期望利润(元)</th>
-      <th>收敛状态</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>JOB_Q1_SPRT</td>
-      <td>Python/Stats</td>
-      <td>Monte Carlo Sim</td>
-      <td>1.24</td>
-      <td>-</td>
-      <td>CONVERGED</td>
-    </tr>
-    <tr>
-      <td>JOB_Q2_SCEN6</td>
-      <td>Python/Gurobi</td>
-      <td>State Enumeration</td>
-      <td>0.45</td>
-      <td>453.42</td>
-      <td>OPTIMAL</td>
-    </tr>
-    <tr>
-      <td>JOB_Q3_MULTI</td>
-      <td>Python/Gurobi</td>
-      <td>Branch & Bound</td>
-      <td>412.30</td>
-      <td>2948.12</td>
-      <td>MIP_GAP &lt; 0.01%</td>
-    </tr>
-    <tr>
-      <td>JOB_Q4_ROBUST</td>
-      <td>Python/Gurobi</td>
-      <td>Dual LPs</td>
-      <td>5.88</td>
-      <td>231.10</td>
-      <td>OPTIMAL</td>
-    </tr>
-  </tbody>
-</table>`
-      },
-
-      'checkpoint.md': {
-        path: 'checkpoint.md',
-        content: `<h1>流水线运行断点存档 (Checkpoint)</h1>
-<ul>
-  <li><strong>工程基准名</strong>: test_cumcm2024b</li>
-  <li><strong>当前所处目录</strong>: /home/tfisher/paper_factory/complete/test_cumcm2024b</li>
-  <li><strong>赛题PDF源</strong>: /home/tfisher/paper_factory/benchmark/cumcm_2024/B题/B题.pdf</li>
-  <li><strong>已校验归档步骤</strong>: 16 (流水线完全成功交付)</li>
-  <li><strong>更新时间戳</strong>: 2026-06-05 14:38</li>
-</ul>`
-      },
-
-      'audit_issue_ledger.md': {
-        path: 'audit_issue_ledger.md',
-        content: `<h1>一致性问题账单销账表 (Audit Ledger)</h1>
-<blockquote>由 CriticAgent 在各阶段提交，经过 ModelerAgent 在 Step 12 集中修改。</blockquote>
-<table>
-  <thead>
-    <tr>
-      <th>问题编号</th>
-      <th>严重级</th>
-      <th>问题描述</th>
-      <th>涉及文件</th>
-      <th>处理状态</th>
-      <th>销账依据/备注</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>ERR_01</td>
-      <td><span style="color: var(--red);">BLOCKING</span></td>
-      <td>模型二正文公式 p3 次品率漏掉了拆解磨损返厂因子。</td>
-      <td>model.md, paper.tex</td>
-      <td><span style="color: var(--green);">已解决</span></td>
-      <td>重新推导吸收链 Q 矩阵并重新运行 solver 计算。</td>
-    </tr>
-    <tr>
-      <td>ERR_02</td>
-      <td><span style="color: var(--orange);">MAJOR</span></td>
-      <td>正文中多处使用英文缩写 "per-attempt" ，显得有些机翻腔。</td>
-      <td>paper.tex</td>
-      <td><span style="color: var(--green);">已解决</span></td>
-      <td>全局替换为“装配企图周期”，符合汉语语序。</td>
-    </tr>
-    <tr>
-      <td>ERR_03</td>
-      <td>MINOR</td>
-      <td>参考文献引用的 CUMCM 往届论文格式未完全对齐 booktabs。</td>
-      <td>references.bib</td>
-      <td><span style="color: var(--green);">已解决</span></td>
-      <td>Step 15 运行 BibTeX 规范脚本完成清理。</td>
-    </tr>
-  </tbody>
-</table>`
-      },
-
-      'abstract_draft.md': {
-        path: 'paper/abstract_draft.md',
-        content: `<h1>四段式摘要草案</h1>
-<blockquote>CUMCM 得分重中之重。必须具备“理解、方法、数据结果、创新亮点”四段结构。</blockquote>
-<p><strong>【问题理解】</strong>本题针对抽样检测、装配缺陷、市场退换与拆解回收并存的复杂多工序链，进行了检测与拆解决策方案的最优化设计。</p>
-<p><strong>【方法】</strong>针对第一问，构建 Wald 序贯概率比检验 (SPRT) 模型以使质检样本规模最小化；针对第二、三问，运用吸收马尔可夫链闭式推导刻画拆解回收的平滑状态循环，建立混合整数规划模型 (MILP) 并采用 Gurobi 求解；针对第四问，引入区间不确定性重构为对偶 Gamma-鲁棒优化模型。</p>
-<p><strong>【结果】</strong>结果表明：SPRT 检测量较固定样本节省 48.3% 成本；第二问的最优决策均表现为“不进行前置质检并拆解回收成品”；第四问在恶劣扰动组合 Gamma=12 下依旧保持正利润，方案稳健。</p>
-<p><strong>【亮点】</strong>通过 Wald SPRT 输出的估计精度 delta 级联输入第四问的鲁棒优化，实现前四问数据流全线贯通；63 个扰动点敏感性分析表明解零单调，极具说服力。</p>`
-      },
-
-      'code_review.md': {
-        path: 'paper/code_review.md',
-        content: `<h1>Gate 1 数值一致性对帐单</h1>
-<blockquote>逐个核查 Tex 论文稿中写入的全部实验数字。</blockquote>
-<ul>
-  <li>[验证成功] 论文第 8 页公式 (14) 中：<em>"最省抽样数 E[N] = 23.4"</em> ── 校验自 <code>results/values.json -> binom_sprt_mean</code></li>
-  <li>[验证成功] 论文第 14 页表 3 中：<em>"情景 6 下最大期望利润为 453.42 元"</em> ── 校验自 <code>results/q2_output.json -> scenario_6 -> max_profit</code></li>
-  <li>[验证成功] 论文第 19 页图 4 下：<em>"在 Gamma=12 时仍获得利润为 231.10 元"</em> ── 校验自 <code>results/q4_output.json -> worst_case_12 -> profit</code></li>
-</ul>
-<p><strong>审计结果</strong>：无任何未登记数值与手写虚构数字，顺利放行通过 Gate 1 一致性关口。</p>`
-      },
-
-      'judge_evaluation.md': {
-        path: 'paper/judge_evaluation.md',
-        content: `<h1>Step 13 Gate 2 — 评委模拟打分报告</h1>
-<blockquote>VERDICT: PASS</blockquote>
-<h2>1. 多维度得分矩阵</h2>
-<table>
-  <thead>
-    <tr>
-      <th>评价维度</th>
-      <th>分配权重</th>
-      <th>评委 A</th>
-      <th>评委 B</th>
-      <th>评委 C</th>
-      <th>加权均分</th>
-      <th>评级</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>模型合理性</td>
-      <td>20%</td>
-      <td>18</td>
-      <td>17</td>
-      <td>18</td>
-      <td>17.7</td>
-      <td>优</td>
-    </tr>
-    <tr>
-      <td>求解正确性</td>
-      <td>20%</td>
-      <td>18</td>
-      <td>18</td>
-      <td>17</td>
-      <td>17.7</td>
-      <td>优</td>
-    </tr>
-    <tr>
-      <td>创新性</td>
-      <td>20%</td>
-      <td>18</td>
-      <td>17</td>
-      <td>17</td>
-      <td>17.3</td>
-      <td>优</td>
-    </tr>
-    <tr>
-      <td>写作清晰度</td>
-      <td>15%</td>
-      <td>13</td>
-      <td>13</td>
-      <td>12</td>
-      <td>12.7</td>
-      <td>良</td>
-    </tr>
-    <tr>
-      <td>结果说服力</td>
-      <td>15%</td>
-      <td>14</td>
-      <td>13</td>
-      <td>14</td>
-      <td>13.7</td>
-      <td>良</td>
-    </tr>
-    <tr>
-      <td>灵敏度分析</td>
-      <td>10%</td>
-      <td>9</td>
-      <td>9</td>
-      <td>9</td>
-      <td>9.0</td>
-      <td>优</td>
-    </tr>
-    <tr style="font-weight: 700; background: rgba(56, 189, 248, 0.05);">
-      <td>加权总分</td>
-      <td>100%</td>
-      <td>-</td>
-      <td>-</td>
-      <td>-</td>
-      <td>86.4</td>
-      <td>一等奖评级</td>
-    </tr>
-  </tbody>
-</table>
-<h2>2. 评委核心意见</h2>
-<p><strong>评委 A (关注数学模型)</strong>: 引入马尔可夫链基本矩阵 <strong>(I - Q)⁻¹</strong> 解锁了拆装的大周期循环解，数学物理意义非常深刻，相比其他只做简单离散仿真的队伍有巨大的数学优势。</p>
-<p><strong>评委 B (关注求解验证)</strong>: 所有的数值全部有 Gurobi 求解日志佐证。唯一的不足是正文摘要占位符未填，需在 Step 14 填补。</p>`
-      },
-
-      'fig-tornado.png': {
-        path: 'results/fig-tornado.png',
-        image: './images/fig-tornado.png',
-        caption: '图 6.2 零配件采购成本与检测开销对整体利润扰动的 Tornado 龙卷风图。通过单因素 Perturbations 扫描 ±20% 空间，可见成品大检决策 x_s 对利润波动的敏感性最高。'
-      },
-
-      'fig-scenario.png': {
-        path: 'results/fig-scenario.png',
-        image: './images/fig-scenario.png',
-        caption: '图 6.3 问题三多工序装配在名义次品率波动下的最优场景收益比对。可以看出 Stream m3 (马尔可夫优化方案) 在各种波动场景下均能比 naive_check 全检策略提高 70% 以上的利润。'
-      },
-
-      'fig-robust.png': {
-        path: 'results/fig-robust.png',
-        image: './images/fig-robust.png',
-        caption: '图 6.4 区间鲁棒不确定预算 Gamma 扫描曲线。当 Gamma 升高（意味着更多个零配件同时恶化到次品率上限）时，利润曲线平滑下降，在顶格 Gamma=12 恶劣环境下利润仍大于 0。'
-      },
-
-      'fig-ahp.png': {
-        path: 'results/fig-ahp.png',
-        image: './images/fig-ahp.png',
-        caption: '图 2.4 AHP 层次分析判断矩阵对“利润”、“质量风险”、“质检负荷”、“售后损失”四维度的权重偏好雷达。CR 检验结果为 0.041 < 0.1，权重分配具备一致性。'
-      },
-
-      'paper_draft.tex': {
-        path: 'paper/paper_draft.tex',
-        isTex: true,
-        code: `\\documentclass[12pt]{article}
-\\usepackage{ctex}
-\\usepackage{amsmath, amssymb, amsthm}
-\\usepackage{booktabs}
-\\usepackage{graphicx}
-
-\\title{基于吸收马尔可夫链与对偶鲁棒优化的多级装配决策研究}
-\\author{参赛队号: 20261094B}
-
-\\begin{document}
-\\maketitle
-
-\\begin{abstract}
-\\ABSTRACT_PLACEHOLDER
-\\end{abstract}
-
-\\section{问题重述与分析}
-电子制造供应链中，来料质量检验、工序阻断质检与次品拆卸回收是降本增效的核心控制节点...
-
-\\section{模型假设}
-\\begin{itemize}
-  \\item A1: 零配件次品率分布符合大样本 Bernoulli 独立试验。
-  \\item A2: 拆卸后的零件无损且可再次检验。
-\\end{itemize}
-
-\\section{吸收马尔可夫链模型建立}
-设原料池、待装配线、不合格品、折返拆卸等为非吸收状态。转移矩阵定义为...
-\\end{document}`,
-        pdfTitleZh: '基于吸收马尔可夫链与对偶鲁棒优化的多级装配决策研究',
-        pdfTitleEn: 'Optimal Multi-Stage Assembly Decisions Based on absorbing Markov Chains and Robust Optimization',
-        pdfAbstract: '【摘要待填充】'
+def compute_dynamic_momentum(df, w_score, w_ace, w_unforced, decay=0.15):
+    """
+    计算网球赛程中随时间呈指数衰减的指数势头波形
+    """
+    momentum = np.zeros(len(df))
+    current_m = 0.0
+    
+    for i in range(1, len(df)):
+        # 提取点得分物理状态变化
+        score_diff = df.loc[i, 'player1_score_diff']
+        is_ace = df.loc[i, 'player1_aces']
+        unforced_err = df.loc[i, 'player1_unforced_errors']
+        
+        # 积分势头增量
+        delta = w_score * score_diff + w_ace * is_ace - w_unforced * unforced_err
+        
+        # 指数平滑衰减
+        current_m = current_m * (1.0 - decay) + delta
+        momentum[i] = current_m
+        
+    return momentum`,
+            visual: {
+              type: "image",
+              url: "images/fig-robust.png",
+              title: "Step 5: 优化求出的温网男单比赛全程势头指数曲线与实际转折点拟合"
+            },
+            paper: null
+          },
+          {
+            step: 6,
+            phase: "solving",
+            phaseName: "求解建模",
+            title: "Step 6: 蒙特卡洛敏感性模拟",
+            agent: "数据分析智能体",
+            description: "运行蒙特卡洛仿真（进行 10,000 次虚拟比赛对局），检验当选手的发球局赢球率由于情绪产生 $\\pm 5\\%$ 抖动时，势头回归模型的稳健性。",
+            inputs: ["models/solver_out/tennis_results.json"],
+            outputs: ["models/robust_check/monte_carlo.py", "models/robust_check/sensitivity_stats.json"],
+            prompt: "使用蒙特卡洛模拟选手心理波动过程，测试势头权重微扰后，比赛最终走向发生偏转的分布区间。绘制敏感度 Tornado 直方图。",
+            logs: [
+              "[Data Analyst Agent] 启动 10000 次网球赛局蒙特卡洛敏感性波动模拟...",
+              "[Data Analyst Agent] 结果分析：若发球赢球概率从 62% 下降到 57%（选手气势受挫），最终获胜期望由 74.2% 暴跌至 41.5%。",
+              "[Data Analyst Agent] 表明网球赛事确实存在强烈的非线性多米诺“势头”传导，这完全证实了我们模型的动力学推论。",
+              "[System] 输出敏感度数据: models/robust_check/sensitivity_stats.json"
+            ],
+            code: "",
+            visual: {
+              type: "image",
+              url: "images/fig-tornado.png",
+              title: "Step 6: 发球波动与非受迫失误参数对整场比赛赢球概率的敏感度贡献分析"
+            },
+            paper: null
+          },
+          {
+            step: 7,
+            phase: "solving",
+            phaseName: "求解建模",
+            title: "Step 7: 优势因子层次打分 (AHP)",
+            agent: "模型评估智能体",
+            description: "根据体力、心理恢复力、技战术发挥三个主维度，对各网球名将（费德勒、纳达尔等）在劣势下的“翻盘势头”指数进行 AHP 综合定量评估。",
+            inputs: ["models/solver_out/tennis_results.json", "models/robust_check/sensitivity_stats.json"],
+            outputs: ["models/evaluation/tennis_ahp.json", "models/evaluation/report.md"],
+            prompt: "基于层次分析法，构建球员韧性指数评测矩阵。给出特征向量及一致性 CR 核算报告，生成最优翻盘策略决策图。",
+            logs: [
+              "[Evaluator Agent] 建立球员翻盘韧性评判 AHP 矩阵...",
+              "[Evaluator Agent] 矩阵的最大特征值为 3.03，一致性指数 CI = 0.015，一致性比例 CR = 0.026 < 0.1。一致性优秀。",
+              "[Evaluator Agent] 综合翻盘势头评级：A选手（心理强劲）得分 0.81，B选手（体力极强）得分 0.72，C选手得分 0.65。",
+              "[System] 生成评估报告 ongoing/tennis_momentum_2024b/models/evaluation/"
+            ],
+            code: "",
+            visual: {
+              type: "image",
+              url: "images/fig-ahp.png",
+              title: "Step 7: 网球选手大逆转韧性因子评估 (AHP) 决策比值分析"
+            },
+            paper: null
+          },
+          {
+            step: 8,
+            phase: "solving",
+            phaseName: "求解建模",
+            title: "Step 8: 论文学术级图表绘制",
+            agent: "绘图 polish 智能体",
+            description: "美化势头波形、蒙特卡洛分布直方图，导出高清矢量插图文件，嵌入 LaTeX 支持。",
+            inputs: ["models/solver_out/tennis_results.json"],
+            outputs: ["papers/figures/momentum_wave.png", "papers/figures/monte_carlo_dist.png"],
+            prompt: "把势头分析散点图与平滑曲线整理成双栏学术排版的高清 Matplotlib 图，保存为高精度 PNG/EPS，并生成相应的 LaTeX 图题标注说明。",
+            logs: [
+              "[Visual Agent] 加载温网数据拟合序列...",
+              "[Visual Agent] 正在绘制三阶段比赛选手的势头差值追踪图（添加 95% 置信带）...",
+              "[Visual Agent] 矢量图 papers/figures/momentum_wave.png 保存成功。"
+            ],
+            code: "",
+            visual: {
+              type: "image",
+              url: "images/fig-scenario.png",
+              title: "Step 8: 生成的高清网球赛事势头差值随赛程演变趋势图"
+            },
+            paper: null
+          },
+          {
+            step: 9,
+            phase: "writing",
+            phaseName: "论文撰写",
+            title: "Step 9: LaTeX 美赛论文初稿起草",
+            agent: "论文起草智能体",
+            description: "根据美赛 LaTeX 论文规范，起草多栏数学论文初稿，包含标题、英文摘要、背景阐述、网球马氏链公式、势头时序模型、仿真实验与模型评估。",
+            inputs: ["models/final_momentum_eq.md", "models/solver_out/tennis_results.json"],
+            outputs: ["papers/paper_draft.tex"],
+            prompt: "使用 MCM 美赛标准 LaTeX 排版样式，起草网球势头建模学术论文。撰写精简规范的英文 Abstract，阐明你的势头转移和逆转点预测框架。",
+            logs: [
+              "[Writer Agent] 加载 MCM 美赛标准 LaTeX 论文模板...",
+              "[Writer Agent] 自动写入标题: Deciphering the Tennis Momentum: A Markov State-Transition and Time-Series Model...",
+              "[Writer Agent] 生成符号对照表与主要模型公式代码...",
+              "[System] 论文初稿写入完成: papers/paper_draft.tex"
+            ],
+            code: "",
+            visual: { type: "placeholder" },
+            paper: {
+              page: 1,
+              title: "Deciphering Tennis Momentum: A Markov State-Transition Model",
+              content: `<h3>Abstract</h3>
+<p class="paper-abstract-p">This paper provides a quantitative framework to analyze the elusive concept of 'momentum' in professional tennis matches. Utilizing Wimbledon historical feature data, we formulate a Markov State-Transition Model that captures the game point evolution. By overlaying time-series decay functions, we calculate the continuous momentum variation of players...</p>
+<p class="paper-abstract-p"><b>Keywords:</b> Tennis Momentum; Markov Chain; LSTM State Decay; Sensitivity Analysis; AHP Evaluation</p>
+<h3>1. Introduction</h3>
+<p class="paper-abstract-p">Momentum in tennis refers to the phenomenon where a sequence of successful plays shifts the psychological and physical advantage to one player, dramatically altering the probability of winning subsequent points. Although commentators frequently invoke this term, its mathematical representation and prediction remain challenging. In this study, we construct an analytical model...</p>`,
+              image: "images/paper2024b-01.png"
+            }
+          },
+          {
+            step: 10,
+            phase: "writing",
+            phaseName: "论文撰写",
+            title: "Step 10: 一致性门禁检测 (Gate 1)",
+            agent: "一致性门禁校验脚本",
+            description: "自动校对 LaTeX 文档里的关键数据指标（如网球特征列数目、逆转预测精度等），保证学术报告叙述与数据文件毫无二致。",
+            inputs: ["models/solver_out/tennis_results.json", "papers/paper_draft.tex"],
+            outputs: ["papers/consistency_report.json"],
+            prompt: "扫描 LaTeX 论文草案。与数据分析阶段保存的 JSON 结果进行逐词对齐检验。如若发生数据前后矛盾（例如：预测准确率在正文里是 84%，但求解器 JSON 里是 82.3%），立刻报告异常。",
+            logs: [
+              "[Gate 1 CLI] 启动 LaTeX 与 Python 求解数据一致性校验脚本...",
+              "[Gate 1 CLI] 提取 tennis_results.json 关键值: transition_accuracy=0.8423",
+              "[Gate 1 CLI] 解析 paper_draft.tex 发现文本字段: 'The model achieves a momentum transition prediction accuracy of 84.2%...'"
+            ],
+            code: "",
+            visual: { type: "placeholder" },
+            paper: null
+          }
+        ]
       }
     };
 
-    function openFile(fileId) {
-      document.querySelectorAll('.tree-item').forEach(item => item.classList.remove('active'));
-      // Find the element and highlight it
-      const treeItems = Array.from(document.querySelectorAll('.tree-item'));
-      const activeItem = treeItems.find(item => item.innerText.includes(fileId));
-      if (activeItem) {
-        activeItem.classList.add('active');
-        // Automatically expand parent folders if collapsed
-        let parent = activeItem.parentElement;
-        while (parent && !parent.classList.contains('file-tree')) {
-          if (parent.classList.contains('tree-folder')) {
-            parent.style.display = 'flex';
-          }
-          parent = parent.parentElement;
+    // Shared remaining steps (11 to 16) for both problems, which complete the process
+    const COMMON_STEPS_TAIL = [
+      {
+        step: 11,
+        phase: "writing",
+        phaseName: "论文撰写",
+        title: "Step 11: 学术质量审查与漏洞挑刺",
+        agent: "盲审评阅专家智能体",
+        description: "扮演严格的研究生论文盲审老师，对排版细节、公式逻辑错误、分析缺失进行苛刻审查，并开出问题清单（Critique Report）。",
+        inputs: ["papers/paper_draft.tex", "papers/consistency_report.json"],
+        outputs: ["papers/review_critique.md"],
+        prompt: "你是一个苛刻的数学建模竞赛评委。请通读我们的 Latex 论文，指出公式排版不规范、敏感性分析自变量选取不够多、模型假设过于理想化等 5 处严重问题，写在 review_critique.md 中，命令下游 Agent 修改。",
+        logs: [
+          "[Reviewer Agent] 开始对论文 LaTeX 初稿进行严格评审...",
+          "[Reviewer Agent] 评审完毕。指出 3 处缺陷：1) 符号表中符号 alpha 与 delta 重合; 2) 缺少女单决赛鲁棒验证; 3) 论文第二页公式 (4.2) 左右括号不匹配。",
+          "[System] 生成评审报告: papers/review_critique.md. 状态：异常，触发下游自动修复流程。"
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: null
+      },
+      {
+        step: 12,
+        phase: "writing",
+        phaseName: "论文撰写",
+        title: "Step 12: 智能体协同对账与修改",
+        agent: "论文纠错与修改组",
+        description: "根据盲审意见报告自动进行增量修补。调用正则替换与文本改写，修正 LaTeX 排版错误，重新生成公式，并将重算数据补充写入正文。",
+        inputs: ["papers/review_critique.md", "papers/paper_draft.tex"],
+        outputs: ["papers/paper_revised.tex"],
+        prompt: "根据 review_critique.md 的漏洞清单，编辑并修正 paper_draft.tex 中的公式括号错误，统一符号命名冲突，生成修改后的 paper_revised.tex。",
+        logs: [
+          "[Editor Agent] 加载初稿及审查清单...",
+          "[Editor Agent] 正在修正第二页公式 (4.2) 的括号平衡: (a + b) 修正为 \\left( a+b \\right)...",
+          "[Editor Agent] 重新融合符号表变量...",
+          "[System] 修改完毕，输出修订版代码: papers/paper_revised.tex"
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: null
+      },
+      {
+        step: 13,
+        phase: "writing",
+        phaseName: "论文撰写",
+        title: "Step 13: 虚拟评阅人判定门禁 (Gate 2)",
+        agent: "竞赛评委判定智能体",
+        description: "依据历年国赛/美赛官方 O 奖评语及评分细则建立的虚拟评委打分模型。对论文的创新点、逻辑链、可读性做出最终模拟判定，打分 CR 达标则放行编译。",
+        inputs: ["papers/paper_revised.tex"],
+        outputs: ["papers/simulated_judging.json"],
+        prompt: "你作为 2024 CUMCM/MCM 评审组副组长，对修订后的论文打分。根据模型原创度、三维仿真细节、图表整洁性以及数据高度一致性评级，判断该论文是否达到优秀奖/一等奖（F奖/O奖）候选水平。输出打分细节与评语。",
+        logs: [
+          "[Judge Agent] 启动赛题标准评阅人打分模型...",
+          "[Judge Agent] 评定得分: 模型结构完整性: 92/100, 求解结果正确性: 95/100, 排版美观度: 90/100.",
+          "[Judge Agent] 模拟评语：论文行文规范，基于光学物理的三维几何投影计算极其硬核，计算出的余弦效率在镜场中分布极具规律；稳健性测试扎实，图表清晰。建议通过，推荐一等奖级别。",
+          "[System] 评阅通过，分值 92.4分。生成: papers/simulated_judging.json"
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: null
+      },
+      {
+        step: 14,
+        phase: "writing",
+        phaseName: "论文撰写",
+        title: "Step 14: 中英文摘要深度抛光",
+        agent: "学术润色智能体",
+        description: "摘要是数模竞赛的第一门面。该步利用专业的摘要打磨 Prompt，提炼论文的核心求解精度、算法名称和核心结论，使摘要达到“短、精、强”的学术标准。",
+        inputs: ["papers/paper_revised.tex", "papers/simulated_judging.json"],
+        outputs: ["papers/paper_final_abstract.tex"],
+        prompt: "优化当前论文的摘要。删除拖泥带水的背景叙述，直接突出核心模型（三维投影反射几何模型 + 全局粒子群优化算法）、求解出的具体数据结果（定日镜面数、年均热功率增幅等）以及敏感性测试下的波动阈值，确保评委一眼看中。",
+        logs: [
+          "[Polisher Agent] 对学术摘要进行精简和提纯...",
+          "[Polisher Agent] 删减 120 字的冗余学术空话。将摘要第一段调整为直奔主题式的核心方程描述。",
+          "[Polisher Agent] 重点标粗了本项研究的量化贡献：‘相比常规排布，阴影面积缩小 14.8%，使得年均输出热能提升了 12%’。",
+          "[System] 输出精雕摘要: papers/paper_final_abstract.tex"
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: null
+      },
+      {
+        step: 15,
+        phase: "writing",
+        phaseName: "论文撰写",
+        title: "Step 15: 终稿格式校验与目录对齐",
+        agent: "文献引用与拼写检查器",
+        description: "全面排查文献交叉引用、图表编号连续性、拼写语法问题，对 LaTeX 代码中的图表排版进行最终微调对齐。",
+        inputs: ["papers/paper_final_abstract.tex"],
+        outputs: ["papers/paper_final.tex"],
+        prompt: "核对论文中的所有 bib 参考文献引用，修复未定义的 label，并检查正文中引用的图表序列（如 Figure 1, Figure 2）是否按顺序递增，确认无悬空图表。",
+        logs: [
+          "[Linter Agent] 启动参考文献及图表引用格式校验...",
+          "[Linter Agent] 自动补齐 4 处参考文献的 bibtex 引用索引号...",
+          "[Linter Agent] 正文图表标号顺序扫描：[图1.1 -> 图1.2 -> 图2.1]，顺序正确，无未定义图表标签。",
+          "[System] 输出终版本 LaTeX 主源码: papers/paper_final.tex"
+        ],
+        code: "",
+        visual: { type: "placeholder" },
+        paper: null
+      },
+      {
+        step: 16,
+        phase: "writing",
+        phaseName: "论文撰写",
+        title: "Step 16: LaTeX 编译与打包压缩交付",
+        agent: "系统交付脚本 (compile_paper.sh)",
+        description: "自动调用 `compile_paper.sh` 调用 xelatex 进行编译（进行 BibTeX - xelatex - xelatex 三次编译），生成高质量学术 PDF 放入 `papers/`。最后将求解代码、参数配置、仿真图和 PDF 打包归档为待提交压缩包。",
+        inputs: ["papers/paper_final.tex"],
+        outputs: ["papers/solar_heliostat_final.pdf", "papers/solar_heliostat_submission.zip"],
+        prompt: "调用 xelatex 命令行对 paper_final.tex 进行三次迭代编译。确保数学公式与中文字体正常渲染，生成最终论文 PDF 文件，并将整个 workspace 按照组委会格式压缩打包。",
+        logs: [
+          "[System] 调用 compile_paper.sh 编译终端命令: xelatex -interaction=nonstopmode paper_final.tex",
+          "[System] [XeLaTeX] 编译中, 正在处理字体映射...",
+          "[System] [XeLaTeX] 编译第一遍, 生成辅助文件 paper_final.aux...",
+          "[System] [XeLaTeX] 编译第二遍, 建立公式符号索引...",
+          "[System] [XeLaTeX] 编译第三遍, 渲染最终图表嵌入...",
+          "[System] 编译成功！成功生成高质量学术论文: papers/solar_heliostat_final.pdf (大小: 1.2 MB)",
+          "[System] 压缩打包程序代码与 PDF 交付物: papers/solar_heliostat_submission.zip",
+          "[System] 管道执行全部成功！将当前项目由 ongoing/ 搬移至: complete/solar_heliostat_2024b",
+          "[System] == Modeling Factory 流水线运行结束 =="
+        ],
+        code: "",
+        visual: {
+          type: "image",
+          url: "images/paper2024b-01.png",
+          title: "Step 16: 编译生成的全国一等奖候选论文封面及摘要页"
+        },
+        paper: {
+          page: 1,
+          title: "基于三维几何投影与全局粒子群算法的定日镜场排布优化设计",
+          content: `<h3>摘 &nbsp; 要</h3>
+<p class="paper-abstract-p">本文针对太阳能光热电站定日镜场的优化设计与控制问题，建立了一套基于三维向量光学几何投影的效率计算模型，并设计了一种新型定日镜场优化排布算法。首先，推导了定日镜法向量与太阳位置向量的精确解析方程，计算了关键的余弦损失率。通过三维射线几何投影裁剪算法，定量计算了多镜交互情况下的阴影遮挡损失。在大气透射率和集热聚焦效率方程的基础上，以最大化单位面积热功率为目标，建立粒子群参数最优化模型。结果显示，我们的设计能使镜面年均总效率相比对称式布局提升 14.8%...</p>
+<p class="paper-abstract-p"><b>关键词：</b>定日镜场；余弦损失；三维投影裁剪；粒子群算法；稳健性设计</p>
+<h3>1. 问题背景与分析</h3>
+<p class="paper-abstract-p">太阳能光热电站通过数以千计的定日镜将太阳辐射聚焦于吸收塔顶部的集热器上。定日镜在反射阳光时，由于入射方向与法向夹角不同会产生余弦损失；由于定日镜相互靠拢，又会产生阴影与遮挡损失。本题要求我们通过优化镜场排布和镜面法线角度，最大化年均单位面积输出热功率，极具应用价值...</p>`,
+          image: "images/paper2024b-01.png"
         }
       }
+    ];
 
-      const fileData = filesDb[fileId];
-      if (!fileData) return;
+    // State Variables for Simulation
+    let currentProblem = "cumcm_2024b";
+    let isRunning = false;
+    let isPaused = false;
+    let currentStepIndex = 0;
+    let logQueue = [];
+    let logTimer = null;
+    let stepTimer = null;
+    let speed = 1; // 1, 2, 5
 
-      document.getElementById('current-filepath').innerText = fileData.path;
-      const viewer = document.getElementById('viewer-content');
+    // Combined Steps List
+    function getStepsList() {
+      const problemData = PROBLEMS_DATA[currentProblem];
+      return [...problemData.steps, ...COMMON_STEPS_TAIL];
+    }
 
-      if (fileData.image) {
-        // Image rendering
-        viewer.innerHTML = `
-          <div class="viewer-image-container">
-            <img src="${fileData.image}" alt="${fileId}" class="viewer-img">
-            <p class="viewer-img-caption">${fileData.caption}</p>
-          </div>
+    // Initialize UI
+    document.addEventListener("DOMContentLoaded", () => {
+      buildTimeline();
+      setupEventListeners();
+      showStepDetails(0);
+    });
+
+    // Setup Timeline Stepper Cards
+    function buildTimeline() {
+      const grid = document.getElementById("pipeline-steps-grid");
+      grid.innerHTML = "";
+      const steps = getStepsList();
+      
+      steps.forEach((s) => {
+        const card = document.createElement("div");
+        card.className = "step-card";
+        card.id = `timeline-step-${s.step}`;
+        card.onclick = () => handleStepClick(s.step);
+        
+        let badgeClass = s.phase;
+        let badgeText = s.phaseName;
+        
+        card.innerHTML = `
+          <div class="step-badge ${badgeClass}">${badgeText}</div>
+          <div class="step-title">Step ${s.step}: ${s.title.split(": ")[1] || s.title}</div>
+          <div class="step-desc">${s.description}</div>
+          <div class="step-status-indicator"></div>
         `;
-      } else if (fileData.isTex) {
-        // LaTeX split-pane code and PDF cover mockup rendering
-        viewer.innerHTML = `
-          <div class="latex-split">
-            <div class="latex-code">${escapeHtml(fileData.code)}</div>
-            <div class="pdf-preview">
-              <div class="pdf-title-zh">${fileData.pdfTitleZh}</div>
-              <div class="pdf-title-en">${fileData.pdfTitleEn}</div>
-              <div class="pdf-meta">
-                <span>参赛队号：20261094B</span>
-                <span>竞赛方向：B题</span>
-                <span>评阅组别：全国一等奖候选</span>
-              </div>
-              <div class="pdf-abstract-title">摘  要</div>
-              <div class="pdf-abstract-text" id="pdf-abstract-placeholder">${fileData.pdfAbstract}</div>
-            </div>
-          </div>
-        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // Event Listeners
+    function setupEventListeners() {
+      // Problem Select
+      document.getElementById("problem-select").addEventListener("change", (e) => {
+        if (isRunning) return;
+        currentProblem = e.target.value;
+        buildTimeline();
+        resetSimulation();
+      });
+
+      // Speed Select
+      document.getElementById("speed-select").addEventListener("change", (e) => {
+        speed = parseInt(e.target.value);
+        if (isRunning && !isPaused) {
+          // Restart logs with new speed
+          clearTimeout(logTimer);
+          processLogQueue();
+        }
+      });
+
+      // Run button
+      document.getElementById("btn-run-sim").addEventListener("click", () => {
+        if (!isRunning) {
+          startSimulation();
+        } else if (isPaused) {
+          resumeSimulation();
+        } else {
+          pauseSimulation();
+        }
+      });
+
+      // Reset button
+      document.getElementById("btn-reset-sim").addEventListener("click", () => {
+        resetSimulation();
+      });
+
+      // Tab Buttons
+      const tabBtns = document.querySelectorAll(".tab-btn");
+      tabBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+          tabBtns.forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          
+          const tabId = btn.getAttribute("data-tab");
+          document.querySelectorAll(".preview-pane").forEach(p => p.classList.remove("active"));
+          document.getElementById(`pane-${tabId}`).classList.add("active");
+        });
+      });
+    }
+
+    // Step Detail Display
+    function showStepDetails(stepNum) {
+      const steps = getStepsList();
+      const s = steps.find(item => item.step === stepNum);
+      if (!s) return;
+      
+      const panel = document.getElementById("step-details-panel");
+      panel.style.display = "grid";
+      
+      // Update Fields
+      document.getElementById("details-title").textContent = s.title;
+      document.getElementById("details-agent-role").textContent = s.agent;
+      document.getElementById("details-description").textContent = s.description;
+      
+      const badge = document.getElementById("details-badge");
+      badge.className = `step-badge ${s.phase}`;
+      badge.textContent = s.phaseName;
+      
+      // I/O tags
+      const filesContainer = document.getElementById("details-files-io");
+      filesContainer.innerHTML = "";
+      
+      s.inputs.forEach(f => {
+        const span = document.createElement("span");
+        span.className = "file-tag";
+        span.textContent = `输入: ${f}`;
+        filesContainer.appendChild(span);
+      });
+      s.outputs.forEach(f => {
+        const span = document.createElement("span");
+        span.className = "file-tag";
+        span.style.borderColor = "var(--success)";
+        span.style.color = "#34d399";
+        span.textContent = `输出: ${f}`;
+        filesContainer.appendChild(span);
+      });
+      
+      // Prompt Viewer
+      document.getElementById("details-prompt-view").textContent = s.prompt;
+    }
+
+    function handleStepClick(stepNum) {
+      if (isRunning && !isPaused) {
+        pauseSimulation();
+      }
+      showStepDetails(stepNum);
+      
+      // Scroll to details panel
+      document.getElementById("step-details-panel").scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Start Simulation
+    function startSimulation() {
+      isRunning = true;
+      isPaused = false;
+      document.getElementById("btn-run-sim").className = "btn btn-secondary";
+      document.getElementById("run-btn-icon").textContent = "⏸";
+      document.getElementById("run-btn-text").textContent = "暂停模拟";
+      document.getElementById("btn-reset-sim").disabled = false;
+      document.getElementById("problem-select").disabled = true;
+      
+      // System header status update
+      const systemDot = document.getElementById("system-status-dot");
+      systemDot.className = "status-dot active";
+      document.getElementById("system-status-text").textContent = "正在运行 (Pipeline Active)";
+      
+      // Clear Terminal
+      const terminalBox = document.getElementById("terminal-log-box");
+      terminalBox.innerHTML = '<span class="terminal-cursor"></span>';
+      
+      currentStepIndex = 0;
+      runStep();
+    }
+
+    // Pause Simulation
+    function pauseSimulation() {
+      isPaused = true;
+      document.getElementById("run-btn-icon").textContent = "▶";
+      document.getElementById("run-btn-text").textContent = "继续模拟";
+      document.getElementById("system-status-text").textContent = "暂停中 (Pipeline Paused)";
+      
+      const systemDot = document.getElementById("system-status-dot");
+      systemDot.className = "status-dot";
+      systemDot.style.backgroundColor = "var(--warning)";
+      systemDot.style.boxShadow = "0 0 8px var(--warning)";
+      
+      clearTimeout(logTimer);
+    }
+
+    // Resume Simulation
+    function resumeSimulation() {
+      isPaused = false;
+      document.getElementById("run-btn-icon").textContent = "⏸";
+      document.getElementById("run-btn-text").textContent = "暂停模拟";
+      document.getElementById("system-status-text").textContent = "正在运行 (Pipeline Active)";
+      
+      const systemDot = document.getElementById("system-status-dot");
+      systemDot.className = "status-dot active";
+      systemDot.style.backgroundColor = "";
+      systemDot.style.boxShadow = "";
+      
+      processLogQueue();
+    }
+
+    // Reset Simulation
+    function resetSimulation() {
+      isRunning = false;
+      isPaused = false;
+      currentStepIndex = 0;
+      clearTimeout(logTimer);
+      
+      document.getElementById("btn-run-sim").className = "btn btn-primary";
+      document.getElementById("run-btn-icon").textContent = "▶";
+      document.getElementById("run-btn-text").textContent = "开始运行流水线";
+      document.getElementById("btn-reset-sim").disabled = true;
+      document.getElementById("problem-select").disabled = false;
+      
+      const systemDot = document.getElementById("system-status-dot");
+      systemDot.className = "status-dot";
+      systemDot.style.backgroundColor = "";
+      systemDot.style.boxShadow = "";
+      document.getElementById("system-status-text").textContent = "就绪 (Runner Idle)";
+      document.getElementById("sim-progress-text").textContent = "进度: 0 / 16 步";
+      
+      // Clear timeline highlights
+      document.querySelectorAll(".step-card").forEach(c => {
+        c.classList.remove("active", "completed");
+      });
+      
+      // Clear Terminal
+      const terminalBox = document.getElementById("terminal-log-box");
+      terminalBox.innerHTML = `
+        <div class="terminal-line">
+          <span class="terminal-time">[14:53:18]</span>
+          <span class="terminal-text system">== Modeling Factory CLI 初始化完毕 ==</span>
+        </div>
+        <div class="terminal-line">
+          <span class="terminal-time">[14:53:18]</span>
+          <span class="terminal-text">当前状态: 准备就绪。请在上方选择题目，点击“开始运行流水线”。</span>
+        </div>
+        <span class="terminal-cursor"></span>
+      `;
+      
+      // Clear Previews
+      document.getElementById("code-box").innerHTML = `
+        <div class="code-line">
+          <span class="code-num">1</span>
+          <span class="code-content" style="color: var(--text-muted); font-style: italic;"># 等待求解智能体编写模型程序...</span>
+        </div>
+      `;
+      document.getElementById("visuals-box").innerHTML = `
+        <div class="visuals-placeholder">
+          <span>📈</span>
+          <p>求解器图表将在管道进入【求解建模】和【敏感性分析】阶段时渲染</p>
+        </div>
+      `;
+      
+      document.getElementById("paper-thumbs-box").innerHTML = `
+        <div class="paper-page-thumb active">
+          <span style="font-size: 1.5rem;">📃</span>
+        </div>
+      `;
+      document.getElementById("paper-doc-box").innerHTML = `
+        <div style="color: var(--text-muted); text-align: center; margin-top: 100px;">
+          <span style="font-size: 3rem;">📄</span>
+          <p style="margin-top: 15px; font-family: var(--font-ui)">正在等待第 9 步 (论文起草) 自动撰写 LaTeX 论文...</p>
+        </div>
+      `;
+      
+      // Active Code Tab
+      switchTab("code");
+      showStepDetails(0);
+    }
+
+    // Run a specific step in the flow
+    function runStep() {
+      const steps = getStepsList();
+      if (currentStepIndex >= steps.length) {
+        completeSimulation();
+        return;
+      }
+      
+      const s = steps[currentStepIndex];
+      
+      // Highlight Timeline card
+      document.querySelectorAll(".step-card").forEach(c => c.classList.remove("active"));
+      const activeCard = document.getElementById(`timeline-step-${s.step}`);
+      if (activeCard) {
+        activeCard.classList.add("active");
+        activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      }
+      
+      document.getElementById("sim-progress-text").textContent = `进度: ${s.step} / 16 步`;
+      showStepDetails(s.step);
+      
+      // Load logs for this step
+      logQueue = [...s.logs];
+      // Insert step headers
+      logQueue.unshift(`[Header] >>> 执行：${s.title} <<<`);
+      
+      processLogQueue();
+    }
+
+    // Process Terminal Log Queue for current step
+    function processLogQueue() {
+      if (logQueue.length === 0) {
+        // Step complete! Set timeline completed
+        const steps = getStepsList();
+        const s = steps[currentStepIndex];
+        const activeCard = document.getElementById(`timeline-step-${s.step}`);
+        if (activeCard) {
+          activeCard.classList.remove("active");
+          activeCard.classList.add("completed");
+        }
+        
+        // Update previews based on current step
+        updatePreviews(s);
+        
+        // Move to next step
+        currentStepIndex++;
+        
+        // Step delay before moving forward
+        let stepDelay = 1800 / speed;
+        stepTimer = setTimeout(runStep, stepDelay);
+        return;
+      }
+      
+      // Print one log line
+      const lineText = logQueue.shift();
+      appendTerminalLine(lineText);
+      
+      // Next log interval
+      let logInterval = (500 + Math.random() * 500) / speed;
+      // Faster if it's step header
+      if (lineText.startsWith("[Header]")) logInterval = 200 / speed;
+      
+      logTimer = setTimeout(processLogQueue, logInterval);
+    }
+
+    // Append a log line into terminal container
+    function appendTerminalLine(text) {
+      const container = document.getElementById("terminal-log-box");
+      const cursor = container.querySelector(".terminal-cursor");
+      
+      const line = document.createElement("div");
+      line.className = "terminal-line";
+      
+      // Time
+      const timeSpan = document.createElement("span");
+      timeSpan.className = "terminal-time";
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      timeSpan.textContent = `[${h}:${m}:${s}]`;
+      
+      // Text
+      const textSpan = document.createElement("span");
+      textSpan.className = "terminal-text";
+      
+      if (text.startsWith("[Header]")) {
+        textSpan.className = "terminal-text step-header";
+        textSpan.textContent = text.replace("[Header] ", "");
+        // Don't show time for header
+        line.appendChild(textSpan);
       } else {
-        // Markdown rendering
-        viewer.innerHTML = `
-          <div class="md-render">
-            ${fileData.content}
+        textSpan.textContent = text;
+        if (text.startsWith("[System]")) {
+          textSpan.className = "terminal-text system";
+        } else if (text.includes("Agent]")) {
+          textSpan.className = "terminal-text agent-msg";
+        } else if (text.includes("成功") || text.includes("达标") || text.includes("合格") || text.includes("完成")) {
+          textSpan.className = "terminal-text success";
+        } else if (text.includes("警告") || text.includes("异常") || text.includes("冲突")) {
+          textSpan.className = "terminal-text warning";
+        } else if (text.includes("Error") || text.includes("失败")) {
+          textSpan.className = "terminal-text danger";
+        }
+        line.appendChild(timeSpan);
+        line.appendChild(textSpan);
+      }
+      
+      container.insertBefore(line, cursor);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // Switch right panel preview tabs
+    function switchTab(tabId) {
+      const tabBtns = document.querySelectorAll(".tab-btn");
+      tabBtns.forEach(btn => {
+        if (btn.getAttribute("data-tab") === tabId) {
+          btn.classList.add("active");
+        } else {
+          btn.classList.remove("active");
+        }
+      });
+      
+      document.querySelectorAll(".preview-pane").forEach(p => p.classList.remove("active"));
+      document.getElementById(`pane-${tabId}`).classList.add("active");
+    }
+
+    // Update Preview Panel Contents
+    function updatePreviews(stepObj) {
+      // Code Update
+      if (stepObj.code) {
+        const codeBox = document.getElementById("code-box");
+        codeBox.innerHTML = "";
+        
+        const lines = stepObj.code.split("\n");
+        lines.forEach((line, idx) => {
+          const lineDiv = document.createElement("div");
+          lineDiv.className = "code-line";
+          lineDiv.innerHTML = `
+            <span class="code-num">${idx + 1}</span>
+            <span class="code-content">${escapeHtml(line)}</span>
+          `;
+          codeBox.appendChild(lineDiv);
+        });
+        
+        // Auto switch to code tab on first code update (Step 2)
+        if (stepObj.step === 2) {
+          switchTab("code");
+        }
+      }
+      
+      // Visuals Update
+      if (stepObj.visual && stepObj.visual.type === "image") {
+        const visualsBox = document.getElementById("visuals-box");
+        visualsBox.innerHTML = `
+          <img src="${stepObj.visual.url}" class="visuals-image" alt="optimization figure">
+          <div class="visuals-title">${stepObj.visual.title}</div>
+        `;
+        
+        // Auto switch to visuals tab on solver launch (Step 5)
+        if (stepObj.step === 5 || stepObj.step === 8) {
+          switchTab("visuals");
+        }
+      }
+      
+      // Academic Paper Update
+      if (stepObj.paper) {
+        // Thumbnail list update
+        const thumbsBox = document.getElementById("paper-thumbs-box");
+        thumbsBox.innerHTML = `
+          <div class="paper-page-thumb active" onclick="alert('展示第 1 页摘要')">
+            <img src="${stepObj.paper.image}" alt="page 1 thumb">
+          </div>
+          <div class="paper-page-thumb" style="background:#fff; color:#333; font-size: 1.5rem; opacity: 0.5; display:flex; align-items:center; justify-content:center;">
+            📄
           </div>
         `;
+        
+        // Body details update
+        const docBox = document.getElementById("paper-doc-box");
+        docBox.innerHTML = `
+          <h2>${stepObj.paper.title}</h2>
+          ${stepObj.paper.content}
+        `;
+        
+        // Auto switch to paper on compilation or draft (Step 9, 16)
+        if (stepObj.step === 9 || stepObj.step === 16) {
+          switchTab("paper");
+        }
       }
     }
 
+    // Complete Simulation Run
+    function completeSimulation() {
+      isRunning = false;
+      document.getElementById("btn-run-sim").className = "btn btn-primary";
+      document.getElementById("btn-run-sim").disabled = true;
+      document.getElementById("run-btn-icon").textContent = "✔";
+      document.getElementById("run-btn-text").textContent = "模拟运行完毕";
+      document.getElementById("btn-reset-sim").disabled = false;
+      
+      const systemDot = document.getElementById("system-status-dot");
+      systemDot.className = "status-dot completed";
+      document.getElementById("system-status-text").textContent = "所有步骤执行成功 (Pipeline Complete)";
+      document.getElementById("sim-progress-text").textContent = "进度: 16 / 16 步 (100%)";
+      
+      // Auto display details of the final step (Step 16)
+      showStepDetails(16);
+      
+      // Show dynamic notification alerts or popups in terminal
+      appendTerminalLine("[System] >>> 项目构建验证最终成功！生成交付包 solar_heliostat_submission.zip <<<");
+    }
+
+    // Helper to escape HTML tags in code
     function escapeHtml(text) {
       return text
         .replace(/&/g, "&amp;")
@@ -2408,323 +2413,6 @@
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
     }
-
-    // Simulation Engine State Variables
-    let simInterval = null;
-    let simSpeed = 300; // ms per log output block
-    let currentSimStep = 0;
-    let simActive = false;
-    let userChosenStream = null;
-
-    const simStepsLogs = {
-      0: [
-        { type: 'sys', text: '[14:38:25] [SYSTEM] 初始化 Modeling Factory 引擎，加载项目 "cumcm2024b"...' },
-        { type: 'cmd', text: '[14:38:26] [SHELL] 执行: ./launch_agents.sh new test_cumcm2024b "/benchmark/cumcm_2024/B题/B题.pdf"' },
-        { type: 'agent', text: '[14:38:27] [ParserAgent] 开始读取赛题PDF并运行 MinerU 解析模块...' },
-        { type: 'success', text: '[14:38:29] [ParserAgent] 成功将 PDF 转换为 problem/source.md (排版、表格提取完整)。' },
-        { type: 'success', text: '[14:38:30] [ParserAgent] 已建立规范文件 problem_brief.md 及 feasibility_constraints.md (74h预算就绪)。' },
-        { type: 'sys', text: '[14:38:31] [SYSTEM] Step 0 运行完毕，文件状态已存盘。' }
-      ],
-      1: [
-        { type: 'cmd', text: '[14:38:32] [SHELL] 执行: ./launch_agents.sh resume test_cumcm2024b --step 1' },
-        { type: 'agent', text: '[14:38:33] [ResearcherAgent] 扫描 method_library/ 查找可用模型...' },
-        { type: 'agent', text: '[14:38:34] [ResearcherAgent] 文献关联：定位“序贯概率检验 (SPRT)”和“吸收马尔可夫链 (Absorbing Chains)”...' },
-        { type: 'success', text: '[14:38:35] [ResearcherAgent] 产出文献简报 research_brief.md，定义 3 个备选算法流 viable_streams.md。' },
-        { type: 'success', text: '[14:38:36] [ResearcherAgent] 方案可行性校验通过。VERDICT: PASS' },
-        { type: 'sys', text: '[14:38:37] [SYSTEM] Step 1 可行性决策门通过，进入 Step 2。' }
-      ],
-      2: [
-        { type: 'cmd', text: '[14:38:38] [SHELL] 执行: ./launch_agents.sh resume test_cumcm2024b --step 2' },
-        { type: 'agent', text: '[14:38:39] [ModelerAgent] 开始针对 Stream m1, m2, m3 拟定核心约束和假设架构...' },
-        { type: 'agent', text: '[14:38:40] [SolverAgent] 启动 Python 环境，编写 Toy Solves 对算法流进行打样...' },
-        { type: 'success', text: '[14:38:42] [SolverAgent] Stream m1-m3 均正常运行，产出 m1_demo_result.csv, m2_demo_result.csv...' },
-        { type: 'success', text: '[14:38:43] [CriticAgent] 对敲审查完毕，三路方案均判定为 VERDICT: VALIDATED 级。' },
-        { type: 'sys', text: '[14:38:44] [SYSTEM] Step 2 多方案并联打样完成，准备进入方案评选阶段。' }
-      ],
-      3: [
-        { type: 'sys', text: '[14:38:45] [SYSTEM] 阻断型人机决策关卡激活：请人类确定最终建模主线方案...' }
-      ],
-      4: [
-        { type: 'agent', text: '[14:38:50] [ModelerAgent] 根据人类确定的方案 m3，开始建立主数学模型 model.md...' },
-        { type: 'agent', text: '[14:38:51] [ModelerAgent] 统一推导吸收马尔可夫链基本矩阵公式，建立 symbol_table.md 与 assumption_ledger.md。' },
-        { type: 'success', text: '[14:38:53] [ModelerAgent] 产出完整的数学推导文件与包含 12 个底层前提的假设账单。' },
-        { type: 'sys', text: '[14:38:54] [SYSTEM] Step 4 公式公式与符号对齐就绪。' }
-      ],
-      5: [
-        { type: 'cmd', text: '[14:38:55] [SHELL] 执行: ../../solver_submit.sh --type python --max-time 600 models/m3_solve.py' },
-        { type: 'sys', text: '[14:38:56] [SYSTEM] Solver作业JOB_Q3_MULTI已提交至后台...' },
-        { type: 'success', text: '[14:38:59] [SolverAgent] Gurobi 求解器成功收敛 (MIP Gap < 0.01%)，导出结果 values.json。' },
-        { type: 'success', text: '[14:39:00] [SolverAgent] 记录求解日志 solve_log.md，得出问题二最大期望利润为 453.42 元。' },
-        { type: 'sys', text: '[14:39:01] [SYSTEM] Step 5 核心数学模型求解完成。' }
-      ],
-      6: [
-        { type: 'agent', text: '[14:39:02] [ModelerAgent] 针对原料次品率等不确定指标启动敏感性 perturbation 扫描 (±20% 空间)...' },
-        { type: 'cmd', text: '[14:39:03] [SHELL] 执行: ../../solver_submit.sh --type python models/m3_sensitivity.py' },
-        { type: 'success', text: '[14:39:06] [ModelerAgent] 产出敏感性分析报告 sensitivity_report.md，输出波动收益曲线。' },
-        { type: 'sys', text: '[14:39:07] [SYSTEM] Step 6 稳健性分析完成。' }
-      ],
-      7: [
-        { type: 'agent', text: '[14:39:08] [ModelerAgent] 进行模型自评，客观总结马尔可夫吸收态在连续高阶网络中的截断局限性。' },
-        { type: 'success', text: '[14:39:10] [ModelerAgent] 完成 evaluation.md，归纳出 3 个优势与 2 个改进方向。' },
-        { type: 'sys', text: '[14:39:11] [SYSTEM] Step 7 模型评价归档。' }
-      ],
-      8: [
-        { type: 'agent', text: '[14:39:12] [SolverAgent] 启动 Matplotlib 绘制符合国赛学术审美的图表...' },
-        { type: 'success', text: '[14:39:15] [SolverAgent] 导出 fig-tornado.png, fig-scenario.png, fig-robust.png 至 results/ 目录。' },
-        { type: 'sys', text: '[14:39:16] [SYSTEM] Step 8 可视化图表美化收尾。' }
-      ],
-      9: [
-        { type: 'agent', text: '[14:39:17] [ModelerAgent] 开始编译 LaTeX 初稿，抓取 model.md 与 symbols 拼接入 paper_draft.tex...' },
-        { type: 'success', text: '[14:39:20] [ModelerAgent] 生成 LaTeX 源码包，论文摘要保留 ABSTRACT_PLACEHOLDER 以备后审。' },
-        { type: 'sys', text: '[14:39:21] [SYSTEM] Step 9 论文草稿编译就绪。' }
-      ],
-      10: [
-        { type: 'agent', text: '[14:39:22] [ReviewerAgent] 启动数值一致性检查审计 (Gate 1)...' },
-        { type: 'success', text: '[14:39:25] [ReviewerAgent] 经正则对照核实，正文全部数据点与 results/ 求解值 100% 对齐。放行！' },
-        { type: 'sys', text: '[14:39:26] [SYSTEM] Gate 1 一致性审计放行。' }
-      ],
-      11: [
-        { type: 'agent', text: '[14:39:27] [CriticAgent] 启动严苛的论证合理性一审，寻找逻辑与表述盲点...' },
-        { type: 'warning', text: '[14:39:28] [CriticAgent] ERR_01: 发现公式 p3 次品率遗漏了磨损因子；ERR_02: 存在部分未翻译的英文机器短语。' },
-        { type: 'success', text: '[14:39:30] [CriticAgent] 提交 review_comments.md 指责意见账单。' },
-        { type: 'sys', text: '[14:39:31] [SYSTEM] Step 11 审稿挂牌成功。' }
-      ],
-      12: [
-        { type: 'agent', text: '[14:39:32] [ModelerAgent] 调出 review_comments.md 启动重写和修正机制...' },
-        { type: 'cmd', text: '[14:39:33] [SHELL] 重新执行 Gurobi 求解脚本 (JOB_Q3_RECALC)' },
-        { type: 'success', text: '[14:39:36] [ModelerAgent] 修复公式并重新生成正文，销账 ERR_01 & ERR_02。' },
-        { type: 'sys', text: '[14:39:37] [SYSTEM] Step 12 论文重构修订完毕。' }
-      ],
-      13: [
-        { type: 'agent', text: '[14:39:38] [JudgeAgent] 启动 3 位专家评委的国赛打分模拟...' },
-        { type: 'success', text: '[14:39:40] [JudgeAgent] 评分统计：模型合理性(17.7), 求解正确性(17.7), 创新性(17.3)... 加权总分: 86.4分 (优级)' },
-        { type: 'success', text: '[14:39:41] [JudgeAgent] 判定 VERDICT: PASS，允许继续摘要提取。' },
-        { type: 'sys', text: '[14:39:42] [SYSTEM] Step 13 评委模拟打分关口放行。' }
-      ],
-      14: [
-        { type: 'sys', text: '[14:39:43] [SYSTEM] 阻断型人机决策关卡激活：请人类终审修改论文摘要...' }
-      ],
-      15: [
-        { type: 'agent', text: '[14:39:48] [ReviewerAgent] 执行文献引用审计，排版中 LaTeX 标点、表格书写调整为 booktabs 规范三线表...' },
-        { type: 'success', text: '[14:39:50] [ReviewerAgent] 全文去AI腔润色完毕，清除不自然 laundry lists 套话。' },
-        { type: 'sys', text: '[14:39:51] [SYSTEM] Step 15 精细修饰排版完成。' }
-      ],
-      16: [
-        { type: 'cmd', text: '[14:39:52] [SHELL] 执行: ../../compile_paper.sh "$(pwd)" test_cumcm2024b' },
-        { type: 'success', text: '[14:39:54] [SolverAgent] XeLaTeX 成功编译论文 PDF 产物，封皮与附录代码绑定完成。' },
-        { type: 'success', text: '[14:39:56] [SolverAgent] 打包 papers/test_cumcm2024b_submission.zip 交付格式符合提交要求。' },
-        { type: 'sys', text: '[14:39:58] [SYSTEM] 交付归档！项目由 ongoing/ 搬迁至 complete/ 目录下。' },
-        { type: 'success', text: '[14:39:59] [SYSTEM] ======================== 流水线执行成功交付 ========================' }
-      ]
-    };
-
-    function startSimulation() {
-      if (simActive) return;
-      
-      simActive = true;
-      document.getElementById('start-btn').disabled = true;
-      document.getElementById('reset-btn').disabled = false;
-      document.getElementById('status-state').innerText = "RUNNING";
-      document.getElementById('status-state').style.color = "var(--blue)";
-      
-      const term = document.getElementById('terminal-output');
-      term.innerHTML = '<div class="term-line term-sys">[SYSTEM] Initializing Modeling Pipeline Simulation...</div>';
-      
-      currentSimStep = 0;
-      runNextSimStep();
-    }
-
-    function runNextSimStep() {
-      if (!simActive) return;
-
-      selectStep(currentSimStep);
-      
-      const logs = simStepsLogs[currentSimStep];
-      let logIndex = 0;
-      
-      function printLogLine() {
-        if (!simActive) return;
-        
-        if (logIndex < logs.length) {
-          const log = logs[logIndex];
-          const lineEl = document.createElement('div');
-          lineEl.className = `term-line term-${log.type}`;
-          lineEl.innerText = log.text;
-          
-          const term = document.getElementById('terminal-output');
-          term.appendChild(lineEl);
-          term.scrollTop = term.scrollHeight; // Auto scroll to bottom
-          
-          logIndex++;
-          setTimeout(printLogLine, simSpeed);
-        } else {
-          // Finished printing logs for this step
-          // Check for Human Decision Gates
-          if (currentSimStep === 3) {
-            pauseForStep3();
-          } else if (currentSimStep === 14) {
-            pauseForStep14();
-          } else {
-            // Update step checkmarks in sidebar
-            const stepItem = document.getElementById(`step-${currentSimStep}`);
-            if (stepItem) stepItem.classList.add('completed');
-
-            // Move files in file viewer dynamically to simulate creation
-            simulateFileCreation(currentSimStep);
-
-            currentSimStep++;
-            if (currentSimStep <= 16) {
-              setTimeout(runNextSimStep, simSpeed * 2);
-            } else {
-              finishSimulation();
-            }
-          }
-        }
-      }
-      
-      printLogLine();
-    }
-
-    function simulateFileCreation(step) {
-      // Automatically open key created files to guide user attention
-      if (step === 0) {
-        openFile('problem_brief.md');
-      } else if (step === 1) {
-        openFile('viable_streams.md');
-      } else if (step === 4) {
-        openFile('model.md');
-      } else if (step === 5) {
-        openFile('solve_log.md');
-      } else if (step === 8) {
-        openFile('fig-tornado.png');
-      } else if (step === 13) {
-        openFile('judge_evaluation.md');
-      } else if (step === 16) {
-        openFile('paper_draft.tex');
-      }
-    }
-
-    function pauseForStep3() {
-      document.getElementById('modal-step3').classList.add('active');
-    }
-
-    function selectStream(num) {
-      userChosenStream = `m${num}`;
-      document.querySelectorAll('.stream-option').forEach((opt, idx) => {
-        if (idx + 1 === num) {
-          opt.classList.add('selected');
-        } else {
-          opt.classList.remove('selected');
-        }
-      });
-    }
-
-    function submitStep3Decision() {
-      if (!userChosenStream) {
-        // Default to recommended m3 if nothing clicked
-        userChosenStream = 'm3';
-      }
-      document.getElementById('modal-step3').classList.remove('active');
-      
-      const term = document.getElementById('terminal-output');
-      const lineEl = document.createElement('div');
-      lineEl.className = 'term-line term-success';
-      lineEl.innerText = `[Step 3] 人类介入：选定 Stream ${userChosenStream} 为主建模路径，生成决策依据 chosen_method.md。`;
-      term.appendChild(lineEl);
-      term.scrollTop = term.scrollHeight;
-      
-      const stepItem = document.getElementById('step-3');
-      if (stepItem) stepItem.classList.add('completed');
-      
-      // Auto unlock files
-      openFile('chosen_method.md');
-
-      currentSimStep = 4;
-      setTimeout(runNextSimStep, simSpeed);
-    }
-
-    function pauseForStep14() {
-      document.getElementById('modal-step14').classList.add('active');
-    }
-
-    function submitStep14Decision() {
-      const abstractText = document.getElementById('abstract-textarea').value;
-      document.getElementById('modal-step14').classList.remove('active');
-      
-      // Update our database mock
-      filesDb['abstract_draft.md'].content = `<h1>四段式摘要 (人类审定版)</h1><p>${abstractText.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</p>`;
-      filesDb['paper_draft.tex'].pdfAbstract = abstractText;
-      
-      const term = document.getElementById('terminal-output');
-      const lineEl = document.createElement('div');
-      lineEl.className = 'term-line term-success';
-      lineEl.innerText = `[Step 14] 人类介入：完成摘要润色与审核，写入 abstract_draft.md，将其套入 LaTeX 源码中。`;
-      term.appendChild(lineEl);
-      term.scrollTop = term.scrollHeight;
-      
-      const stepItem = document.getElementById('step-14');
-      if (stepItem) stepItem.classList.add('completed');
-      
-      openFile('abstract_draft.md');
-
-      currentSimStep = 15;
-      setTimeout(runNextSimStep, simSpeed);
-    }
-
-    function finishSimulation() {
-      simActive = false;
-      document.getElementById('start-btn').disabled = false;
-      document.getElementById('status-state').innerText = "COMPLETED";
-      document.getElementById('status-state').style.color = "var(--green)";
-      
-      // Scroll to top of sidebar
-      document.querySelector('.sidebar').scrollTop = 0;
-      
-      // Show full paper at the end
-      openFile('paper_draft.tex');
-      switchTab('artifacts');
-    }
-
-    function resetSimulation() {
-      simActive = false;
-      clearInterval(simInterval);
-      document.getElementById('start-btn').disabled = false;
-      document.getElementById('reset-btn').disabled = true;
-      document.getElementById('status-state').innerText = "IDLE";
-      document.getElementById('status-state').style.color = "var(--text-muted)";
-      document.getElementById('status-step-name').innerText = "-";
-      document.getElementById('status-role').innerText = "-";
-      
-      document.querySelectorAll('.step-item').forEach(item => {
-        item.classList.remove('completed');
-        item.classList.remove('active');
-      });
-      document.getElementById('step-0').classList.add('active');
-      
-      document.getElementById('terminal-output').innerHTML = '<div class="term-line term-sys">[SYSTEM] Ready. Click "一键运行流水线" to simulate modeling pipeline.</div>';
-      currentSimStep = 0;
-    }
-
-    function setSpeed(ms) {
-      simSpeed = ms;
-      document.querySelectorAll('.speed-btn').forEach(btn => btn.classList.remove('active'));
-      if (ms === 1000) document.getElementById('speed-1').classList.add('active');
-      if (ms === 300) document.getElementById('speed-2').classList.add('active');
-      if (ms === 20) document.getElementById('speed-3').classList.add('active');
-    }
-
-    // Initialize Page
-    document.addEventListener('DOMContentLoaded', () => {
-      // Expand all folders in tree explorer
-      toggleFolder('folder-prob');
-      toggleFolder('folder-research');
-      toggleFolder('folder-models');
-      toggleFolder('folder-results');
-      toggleFolder('folder-paper');
-      
-      // Open problem_brief.md by default in file viewer
-      openFile('problem_brief.md');
-    });
   </script>
 </body>
 </html>
