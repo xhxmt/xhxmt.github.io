@@ -1811,6 +1811,34 @@
       
       document.getElementById('status-step-name').innerText = stepNames[stepIndex];
       document.getElementById('status-role').innerText = roles[stepIndex];
+
+      // If simulation is not running, auto-switch to Artifact Explorer and show corresponding file
+      if (!simActive) {
+        const stepFileMapping = {
+          0: 'problem_brief.md',
+          1: 'research_brief.md',
+          2: 'viable_streams.md',
+          3: 'chosen_method.md',
+          4: 'model.md',
+          5: 'solve_log.md',
+          6: 'fig-tornado.png',
+          7: 'assumption_ledger.md',
+          8: 'fig-scenario.png',
+          9: 'paper_draft.tex',
+          10: 'code_review.md',
+          11: 'audit_issue_ledger.md',
+          12: 'audit_issue_ledger.md',
+          13: 'judge_evaluation.md',
+          14: 'abstract_draft.md',
+          15: 'checkpoint.md',
+          16: 'paper_draft.tex'
+        };
+        const fileId = stepFileMapping[stepIndex];
+        if (fileId) {
+          switchTab('artifacts');
+          openFile(fileId);
+        }
+      }
     }
 
     // Toggle File Tree Folders
