@@ -1318,10 +1318,10 @@
       
       <!-- Tabs Bar -->
       <div class="tabs-bar">
-        <button class="tab-btn active" onclick="switchTab('overview')">概览与架构</button>
-        <button class="tab-btn" onclick="switchTab('run')">流水线仿真</button>
-        <button class="tab-btn" onclick="switchTab('artifacts')">产物浏览器</button>
-        <button class="tab-btn" onclick="switchTab('agents')">智能体群</button>
+        <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">概览与架构</button>
+        <button class="tab-btn" data-tab="run" onclick="switchTab('run')">流水线仿真</button>
+        <button class="tab-btn" data-tab="artifacts" onclick="switchTab('artifacts')">产物浏览器</button>
+        <button class="tab-btn" data-tab="agents" onclick="switchTab('agents')">智能体群</button>
       </div>
 
       <!-- Tab Content: Overview -->
@@ -1764,7 +1764,7 @@
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
       
-      const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => btn.getAttribute('onclick').includes(tabId));
+      const activeBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
       if (activeBtn) activeBtn.classList.add('active');
       
       const content = document.getElementById(`${tabId}-content`);
@@ -2346,7 +2346,17 @@
       // Find the element and highlight it
       const treeItems = Array.from(document.querySelectorAll('.tree-item'));
       const activeItem = treeItems.find(item => item.innerText.includes(fileId));
-      if (activeItem) activeItem.classList.add('active');
+      if (activeItem) {
+        activeItem.classList.add('active');
+        // Automatically expand parent folders if collapsed
+        let parent = activeItem.parentElement;
+        while (parent && !parent.classList.contains('file-tree')) {
+          if (parent.classList.contains('tree-folder')) {
+            parent.style.display = 'flex';
+          }
+          parent = parent.parentElement;
+        }
+      }
 
       const fileData = filesDb[fileId];
       if (!fileData) return;
