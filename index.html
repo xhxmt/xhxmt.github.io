@@ -1610,7 +1610,12 @@
 <p class="paper-abstract-p">本文研究由 223 节板凳铰接而成的“板凳龙”盘入、碰撞、调头与限速问题。首先，以阿基米德螺线运动学为基础，利用极角微积分和 Brent 数值寻根法构建了链式定弦长递推模型，实现 0-300 s 内全队位置、速度的极精细求解（最大杆长残差小于 3.33e-12 m）。为确定碰撞临界点，将板凳抽象为刚性有向矩形，提出轴对齐包围盒（AABB）预筛与分离轴定理（SAT）相结合的连续时间最近距离裕度函数 g(t) 算法，求得无碰撞盘入终止时刻 t* = 412.4738 s，首碰发生于第 1 节与第 9 节。针对调头优化，推导了两段非退化相切圆弧构成 S 弯曲线的几何约束，求得满足 9m 圆内无碰行进的最短调头轨迹长 13.6212 m（圆半径 R1 = 3.005 m, R2 = 1.503 m）。最后，求解了全队速度不超限下龙头最大安全速度 v0* = 1.2587 m/s。</p>
 <p class="paper-abstract-p"><b>关键词：</b>板凳龙；阿基米德螺线；定弦长递推；分离轴定理（SAT）；S弯调头；几何优化</p>
 <h3>1. 问题背景与分析</h3>
-<p class="paper-abstract-p">“板凳龙”闹元宵是闽逝地区著名的民俗活动。舞龙队行进时，车厢板凳不可视作质点，且随着盘入螺线直径越来越小，龙身极易发生干涉碰撞。这就要求我们求解各个时刻每节板凳的位置和速度，精确确定首碰边界，并优化设计 S 型避障调头曲线。</p>`,
+<p class="paper-abstract-p">“板凳龙”闹元宵是闽逝地区著名的民俗活动。舞龙队行进时，车厢板凳不可视作质点，且随着盘入螺线直径越来越小，龙身极易发生干涉碰撞。这就要求我们求解各个时刻每节板凳的位置和速度，精确确定首碰边界，并优化设计 S 型避障调头曲线。</p>
+<h3>2. 核心数学建模展示</h3>
+<p class="paper-abstract-p"><b>(1) 阿基米德螺线极角递推方程：</b></p>
+<p class="paper-abstract-p" style="text-align: center;"><img src="https://latex.codecogs.com/svg.image?\int_{\theta_{i+1}}^{\theta_i}\sqrt{r^2(\theta)+[r'(\theta)]^2}d\theta=d_i" style="background:white; padding:5px; height: 35px;" alt="极角递推积分公式"></p>
+<p class="paper-abstract-p"><b>(2) 分离轴定理 (SAT) 碰撞检测距离：</b></p>
+<p class="paper-abstract-p" style="text-align: center;"><img src="https://latex.codecogs.com/svg.image?g(t)=\min_{i,j}\max_{\vec{n}\in&space;S_{i,j}}\left(\min_{v\in&space;P_i}&space;v\cdot\vec{n}-\max_{u\in&space;P_j}&space;u\cdot\vec{n}\right)" style="background:white; padding:5px; height: 35px;" alt="SAT 距离公式"></p>`,
         code: `def solve_dragon_positions(t, p=0.55):
     # m1_spiral 核心求解代码：阿基米德螺线极角递推与 Brent 求解
     import numpy as np
@@ -1653,7 +1658,12 @@
 <p class="paper-abstract-p">本文针对电子产品制造中的多阶段抽样检测与拆解回收决策，建立了一套涵盖统计抽样、稳态回路刻画与不确定性鲁棒决策的系统建模框架。首先，针对零部件抽样，设计了 Wald 序贯概率比检验（SPRT）方案，在 95% 拒收信度和 90% 接收信度下，计算出期望样本量仅为 187.18，比固定样本量检验（n = 362）节省 48.3% 的检测成本。其次，针对成品装配中的“缺陷-退回-拆解-重装”往复循环，引入吸收马尔可夫链模型，推导了期望合格产出与全流程期望成本的解析闭式解。结合混合整数线性规划（MILP），解得问题二中 6 个情形的最佳决策方案为不检测零部件和成品、仅拆解不合格成品，单件平均利润为 28.00 至 65.17 元。最后，引入 Bertsimas-Sim Gamma 鲁棒不确定性模型，求解出不同保守程度下的最坏利润界限，确保决策在高次品率波动下的稳定性和经济收益。</p>
 <p class="paper-abstract-p"><b>关键词：</b>质量控制；接收概率检验（SPRT）；吸收马尔可夫链；混合整数线性规划；鲁棒优化</p>
 <h3>1. 问题背景与分析</h3>
-<p class="paper-abstract-p">电子产品制造包含零部件采购、检测、半成品/成品装配、成品检测和售后退换等多个环节。检测能减少次品流入但产生费用，不检测则会导致昂贵的售后退换损失。因此，在有限的统计抽样精度和多级装配反馈循环中，制定最优的多阶段动态质量决策是企业的核心盈利痛点。</p>`,
+<p class="paper-abstract-p">电子产品制造包含零部件采购、检测、半成品/成品装配、成品检测和售后退换等多个环节。检测能减少次品流入但产生费用，不检测则会导致昂贵的售后退换损失。因此，在有限的统计抽样精度和多级装配反馈循环中，制定最优的多阶段动态质量决策是企业的核心盈利痛点。</p>
+<h3>2. 核心数学建模展示</h3>
+<p class="paper-abstract-p"><b>(1) Wald 序贯概率比检验 (SPRT) 边界：</b></p>
+<p class="paper-abstract-p" style="text-align: center;"><img src="https://latex.codecogs.com/svg.image?\ln\frac{\beta}{1-\alpha}\le&space;m\ln\frac{p_1}{p_0}+(n-m)\ln\frac{1-p_1}{1-p_0}\le\ln\frac{1-\beta}{\alpha}" style="background:white; padding:5px; height: 35px;" alt="SPRT 公式"></p>
+<p class="paper-abstract-p"><b>(2) 吸收马尔可夫链状态转移：</b></p>
+<p class="paper-abstract-p" style="text-align: center;"><img src="https://latex.codecogs.com/svg.image?\mathbf{N}=(\mathbf{I}-\mathbf{Q})^{-1},\quad&space;\mathbf{B}=\mathbf{N}\mathbf{R}" style="background:white; padding:5px; height: 25px;" alt="马尔可夫稳态矩阵公式"></p>`,
         code: `def solve_milp_selection(pi_vals, time_limit=60.0):
     # m3_milp 核心求解代码：混合整数线性规划 (Highs 求解器)
     from scipy.optimize import milp, LinearConstraint, Bounds
