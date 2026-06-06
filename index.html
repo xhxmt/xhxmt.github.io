@@ -1917,6 +1917,7 @@
       clearTimeout(logTimer);
       
       document.getElementById("btn-run-sim").className = "btn btn-primary";
+      document.getElementById("btn-run-sim").disabled = false;
       document.getElementById("run-btn-icon").textContent = "▶";
       document.getElementById("run-btn-text").textContent = "开始运行流水线";
       document.getElementById("btn-reset-sim").disabled = true;
@@ -2159,9 +2160,21 @@
         
         // Body details update
         const docBox = document.getElementById("paper-doc-box");
+        const pdfFile = PROBLEMS_METADATA[currentProblem].finalPdf;
         docBox.innerHTML = `
-          <h2>${stepObj.paper.title}</h2>
-          ${stepObj.paper.content}
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0; font-size: 1.5rem;">${stepObj.paper.title}</h2>
+            <a href="${pdfFile}" download class="btn btn-primary" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
+              <svg height="16" viewBox="0 0 16 16" width="16" fill="currentColor"><path d="M7.47 10.78a.75.75 0 001.06 0l3.75-3.75a.75.75 0 00-1.06-1.06L8.75 8.44V1.75a.75.75 0 00-1.5 0v6.69L4.78 5.97a.75.75 0 00-1.06 1.06l3.75 3.75zM3.75 13a.75.75 0 000 1.5h8.5a.75.75 0 000-1.5h-8.5z"></path></svg>
+              下载完整论文
+            </a>
+          </div>
+          <div class="paper-embed" style="height: 500px; border: 1px solid var(--border-subtle); border-radius: 4px; overflow: hidden; margin-bottom: 20px;">
+            <iframe src="${pdfFile}" width="100%" height="100%" style="border: none;"></iframe>
+          </div>
+          <div class="paper-abstract-content">
+            ${stepObj.paper.content}
+          </div>
         `;
         
         // Auto switch to paper on compilation or draft (Step 9, 16)
